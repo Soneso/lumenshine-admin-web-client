@@ -1,0 +1,100 @@
+<template>
+  <form>
+    <editor-widget v-if="data.type === 'issuing'" :has-error="$v.newAssetCode.$invalid" button-text="Add new" @cancel="onCancel" @submit="onSubmit">
+      <template slot="header">
+        <div><strong>Asset codes:</strong></div>
+      </template>
+      <table>
+        <tr v-for="asset_code in data.asset_codes" :key="asset_code">
+          <td>{{ asset_code }}</td>
+          <td><v-btn @click="onDelete(asset_code, data.public_key)">Delete</v-btn></td>
+        </tr>
+      </table>
+      <template slot="editor">
+        <v-text-field
+          v-model="newAssetCode"
+          :error-messages="newAssetCodeErrors"
+          label="New asset code"
+          required
+          single-line
+          @input="$v.newAssetCode.$touch()"
+          @blur="$v.newAssetCode.$touch()"
+        />
+      </template>
+    </editor-widget>
+  </form>
+</template>
+
+<script>
+import { validationMixin } from 'vuelidate';
+import { required } from 'vuelidate/lib/validators';
+
+import { assetCode as validAssetCode } from '@/util/validators';
+
+import EditorWidget from '@/components/EditorWidget';
+
+export default {
+  name: 'AccountAssetsForm',
+  components: { EditorWidget },
+  mixins: [validationMixin],
+  props: {
+    data: {
+      type: Object,
+      default: () => ({})
+    },
+    errors: {
+      type: Array,
+      default: () => []
+    },
+  },
+
+  validations () {
+    return {
+      newAssetCode: { required, validAssetCode },
+    };
+  },
+
+  data () {
+    return {
+      newAssetCode: '',
+    };
+  },
+
+  computed: {
+    newAssetCodeErrors () {
+      const errors = [];
+      if (!this.$v.newAssetCode.$dirty) return errors;
+      !this.$v.newAssetCode.required && errors.push('New asset code is required.');
+      !this.$v.newAssetCode.validAssetCode && errors.push('Invalid asset code.');
+      return errors;
+    },
+  },
+
+  methods: {
+    onSubmit () {
+      this.$v.$touch();
+      if (this.$v.$invalid) {
+        return;
+      }
+      this.$emit('addAssetCode', { assetCode: this.newAssetCode, publicKey: this.data.public_key });
+      this.newAssetCode = '';
+      this.$v.$reset();
+    },
+
+    onDelete (assetCode, publicKey) {
+      this.$root.$confirm('Delete', 'Are you sure you want to delete the asset?', { color: 'red' }).then(async confirm => {
+        if (confirm) {
+          this.$emit('deleteAssetCode', { assetCode, publicKey });
+        }
+      });
+    },
+    onCancel () {
+      this.newAssetCode = '';
+      this.$v.$reset();
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+</style>

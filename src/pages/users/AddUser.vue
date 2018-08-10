@@ -1,0 +1,60 @@
+<template>
+  <v-flex xs12 sm6>
+    <v-card>
+      <v-progress-linear v-if="loading" :indeterminate="true"/>
+      <v-card-title>
+        Add user
+        <v-spacer/>
+      </v-card-title>
+      <v-container row justify-space-between>
+        <div v-if="errorMessages.length > 0">
+          <v-subheader v-for="error in errorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
+        </div>
+        <user-form :password-field-shown="true" @submit="submitForm"/>
+      </v-container>
+    </v-card>
+  </v-flex>
+</template>
+
+<script>
+import { Urls } from '@/router/urls';
+
+import { mapActions } from 'vuex';
+
+import UserForm from '@/forms/UserForm';
+
+export default {
+  name: 'AddUser',
+  components: { UserForm },
+  data () {
+    return {
+      loading: false,
+
+      errorMessages: [],
+    };
+  },
+  methods: {
+    ...mapActions(['getUserList']),
+    async submitForm (data) {
+      this.errorMessages = [];
+      this.loading = true;
+      try {
+        await this.$http({
+          url: Urls.Users.RegisterUser,
+          method: 'POST',
+          data
+        });
+        await this.getUserList();
+        this.$router.push({ path: '/users' });
+      } catch (err) {
+        this.errorMessages = err.response.data;
+        this.loading = false;
+      }
+      this.loading = false;
+    },
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+</style>
