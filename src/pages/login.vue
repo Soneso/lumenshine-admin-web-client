@@ -13,7 +13,13 @@
                 <v-form>
                   <v-subheader v-if="errorMessage" class="error">{{ errorMessage.message }}</v-subheader>
                   <v-text-field v-model="email" prepend-icon="person" name="login" label="E-Mail" type="text"/>
-                  <v-text-field id="password" v-model="password" prepend-icon="lock" name="password" label="Password" type="password"/>
+                  <v-text-field
+                    id="password"
+                    v-model="password"
+                    prepend-icon="lock"
+                    name="password"
+                    label="Password"
+                    type="password"/>
                 </v-form>
               </v-card-text>
               <v-card-actions>
