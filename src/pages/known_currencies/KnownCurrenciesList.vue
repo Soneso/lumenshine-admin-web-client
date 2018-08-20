@@ -1,5 +1,5 @@
 <template>
-  <v-flex xs12 sm9>
+  <v-flex xs12 sm12>
     <v-card>
       <v-card-title>
         Known Currencies

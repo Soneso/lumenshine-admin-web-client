@@ -1,8 +1,8 @@
 <template>
-  <v-flex xs12 sm6>
+  <v-flex xs12 sm12>
     <v-card>
       <v-card-title>
-        Accounts
+        Stellar Accounts
         <v-spacer/>
         <v-btn @click="onRefresh">Refresh</v-btn>
       </v-card-title>
@@ -44,7 +44,8 @@
       >
         <template slot="items" slot-scope="props">
           <tr @click="editAccount(props.item.public_key)">
-            <td v-html="props.item.nameAndPublicKey"/>
+            <td v-html="props.item.name"/>
+            <td v-html="props.item.public_key"/>
             <td class="text-xs-right">{{ props.item.type }}</td>
             <!-- <td class="text-xs-right">{{ props.item.network }}</td> -->
             <td class="text-xs-right" v-html="props.item.balances"/>
@@ -63,7 +64,8 @@ export default {
   data () {
     return {
       headers: [
-        { text: 'Name / Public key', align: 'left', value: 'nameAndPublicKey' },
+        { text: 'Name', align: 'left', value: 'name' },
+        { text: 'Public key', align: 'left', value: 'publicKey' },
         { text: 'Type', value: 'type' },
         // { text: 'Network', value: 'network' },
         { text: 'Balances', value: 'balanceXLM' }
@@ -92,7 +94,6 @@ export default {
     extendedItems () {
       if (!this.accountList) return [];
       return this.accountList.map(account => Object.assign({}, account, {
-        nameAndPublicKey: `${account.name}<br>${account.public_key.slice(0, 15)}...`,
         balances: account.balances ? this.formatBalances(account).join(', ') : 'Account not funded',
       }));
     },

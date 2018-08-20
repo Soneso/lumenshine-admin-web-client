@@ -1,9 +1,9 @@
 <template>
-  <v-flex xs12 sm6>
+  <v-flex xs12 sm12>
     <v-card>
       <v-progress-linear v-if="loading" :indeterminate="true"/>
       <v-card-title>
-        Add account
+        Add Stellar account
         <v-spacer/>
       </v-card-title>
       <v-container v-if="showForm" row justify-space-between>

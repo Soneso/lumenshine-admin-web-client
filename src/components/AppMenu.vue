@@ -87,7 +87,7 @@ export default {
         {
           icon: 'keyboard_arrow_up',
           'icon-alt': 'keyboard_arrow_down',
-          text: 'Accounts',
+          text: 'Stellar Accounts',
           active: true,
           roles: ['Administrators', 'Developers'],
           children: [

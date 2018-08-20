@@ -1,5 +1,5 @@
 <template>
-  <v-flex xs12 sm6>
+  <v-flex xs12 sm12>
     <v-card>
       <v-progress-linear v-if="loading" :indeterminate="true"/>
       <v-card-title>

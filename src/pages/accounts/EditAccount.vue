@@ -1,5 +1,5 @@
 <template>
-  <v-flex v-if="accountData" xs12 sm6>
+  <v-flex v-if="accountData" xs12 sm12>
     <v-card>
       <v-progress-linear v-if="loadingDetails" :indeterminate="true"/>
       <v-card-title>
