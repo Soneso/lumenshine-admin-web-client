@@ -14,7 +14,7 @@ const portfinder = require('portfinder');
 const HOST = process.env.HOST;
 const PORT = process.env.PORT && Number(process.env.PORT);
 
-const env = fs.existsSync(path.resolve('./config/dev.local.env.js')) ? require('../config/dev.local.env') : require('../config/dev.env');
+const env = process.env.npm_lifecycle_event === 'dev-local' ? require('../config/dev.local.env') : require('../config/dev.env');
 
 const devWebpackConfig = merge(baseWebpackConfig, {
   module: {
