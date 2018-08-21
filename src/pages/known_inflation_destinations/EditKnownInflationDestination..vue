@@ -1,18 +1,17 @@
 <template>
   <v-flex xs12 sm12>
-    <v-card>
+    <v-container v-if="knownInflationDestinationData" row justify-space-between>
       <v-progress-linear v-if="loading" :indeterminate="true"/>
-      <v-card-title>
+      <v-subheader class="headline">
         Edit known inflation destination
-      </v-card-title>
-      <v-container v-if="knownInflationDestinationData" row justify-space-between>
-        <div v-if="errorMessages.length > 0">
-          <v-subheader v-for="error in errorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
-        </div>
+        <v-spacer/>
         <v-btn @click="deleteInflationDestination">Delete</v-btn>
-        <known-inflation-destination-form :data="knownInflationDestinationData" @submit="submitForm" @cancel="onCancelClick"/>
-      </v-container>
-    </v-card>
+      </v-subheader>
+      <div v-if="errorMessages.length > 0">
+        <v-subheader v-for="error in errorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
+      </div>
+      <known-inflation-destination-form :data="knownInflationDestinationData" @submit="submitForm" @cancel="onCancelClick"/>
+    </v-container>
   </v-flex>
 </template>
 

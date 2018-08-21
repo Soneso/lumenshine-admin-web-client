@@ -1,12 +1,12 @@
 <template>
   <v-flex xs12 sm12>
-    <v-card>
-      <v-card-title>
+    <v-container>
+      <v-subheader class="headline">
         Known Currencies
         <v-spacer/>
         <v-btn @click="addKnownCurrency">Add Currency</v-btn>
         <v-btn @click="onRefresh">Refresh</v-btn>
-      </v-card-title>
+      </v-subheader>
       <div v-if="errorMessages.length > 0">
         <v-subheader v-for="error in errorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
       </div>
@@ -16,8 +16,7 @@
         :loading="knownCurrenciesListStatus.loading"
         :pagination.sync="pagination"
         hide-actions
-        class="elevation-1"
-      >
+        class="elevation-1">
         <template slot="items" slot-scope="props">
           <tr>
             <td @click="editKnownCurrency(props.item.id)">{{ props.item.name }} <br> {{ props.item.issuer_public_key }}</td>
@@ -36,7 +35,7 @@
           </tr>
         </template>
       </v-data-table>
-    </v-card>
+    </v-container>
   </v-flex>
 </template>
 

@@ -70,25 +70,26 @@ export default {
   methods: {
     recalculateMenuItems () {
       const menu = [
-        { icon: 'contacts', text: 'Dashboard', link: '/dashboard' },
+        { icon: 'contacts', text: 'Home', link: '/' },
         {
           icon: 'keyboard_arrow_up',
           'icon-alt': 'keyboard_arrow_down',
-          text: 'Team',
-          active: true,
+          text: 'ICO Management',
+          active: false,
           roles: ['Administrators', 'Developers'],
-          children: [
-            { text: 'All users', link: '/users' },
-            { text: 'Add user', link: '/users/add' },
-            { text: 'Edit user', link: `/users/edit/${this.$route.params.id}`, visible: ['ViewUser', 'EditUser'].includes(this.$route.name) }
-          ]
         },
-        { icon: 'contacts', text: 'My User', link: '/myuser' },
+        {
+          icon: 'keyboard_arrow_up',
+          'icon-alt': 'keyboard_arrow_down',
+          text: 'Customer Management',
+          active: false,
+          roles: ['Administrators', 'Developers'],
+        },
         {
           icon: 'keyboard_arrow_up',
           'icon-alt': 'keyboard_arrow_down',
           text: 'Stellar Accounts',
-          active: true,
+          active: false,
           roles: ['Administrators', 'Developers'],
           children: [
             { text: 'All accounts', link: '/accounts' },
@@ -99,7 +100,7 @@ export default {
           icon: 'keyboard_arrow_up',
           'icon-alt': 'keyboard_arrow_down',
           text: 'Wallet management',
-          active: true,
+          active: false,
           roles: ['Administrators', 'Developers'],
           children: [
             { text: 'Promos', link: '/promos' },
@@ -107,9 +108,19 @@ export default {
             { text: 'Known inflation destinations', link: '/known_inflation_destinations' },
           ]
         },
-        { icon: 'settings', text: 'Settings' },
-        { icon: 'chat_bubble', text: 'Send feedback' },
-        { icon: 'help', text: 'Help' },
+        {
+          icon: 'keyboard_arrow_up',
+          'icon-alt': 'keyboard_arrow_down',
+          text: 'Team',
+          active: false,
+          roles: ['Administrators', 'Developers'],
+          children: [
+            { text: 'Members', link: '/users' },
+            { text: 'Add member', link: '/users/add' },
+            { text: 'Edit member', link: `/users/edit/${this.$route.params.id}`, visible: ['ViewUser', 'EditUser'].includes(this.$route.name) }
+          ]
+        },
+        { icon: 'contacts', text: 'My account', link: '/myuser' },
       ];
       const currentRoles = this.$auth.user().groups;
       const res = menu

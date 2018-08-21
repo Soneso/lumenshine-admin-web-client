@@ -1,15 +1,12 @@
 <template>
   <v-flex xs12 sm12>
-    <v-card>
+    <v-container v-if="userData" row justify-space-between>
       <v-progress-linear v-if="loading" :indeterminate="true"/>
-      <v-card-title>
+      <v-subheader class="headline">
         User details
-        <v-spacer/>
-      </v-card-title>
-      <v-container v-if="userData" row justify-space-between>
-        <user-form :data="userData" readonly/>
-      </v-container>
-    </v-card>
+      </v-subheader>
+      <user-form :data="userData" readonly/>
+    </v-container>
   </v-flex>
 </template>
 

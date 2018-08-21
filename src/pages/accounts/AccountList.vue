@@ -1,58 +1,65 @@
 <template>
   <v-flex xs12 sm12>
-    <v-card>
-      <v-card-title>
+    <v-container justify-space-between>
+      <v-subheader class="headline">
         Stellar Accounts
         <v-spacer/>
         <v-btn @click="onRefresh">Refresh</v-btn>
-      </v-card-title>
-      <v-container justify-space-between>
-        Filters
-        <v-layout row>
-          <v-text-field
-            v-model="nameFilter"
-            append-icon="search"
-            label="Name"
-            hide-details
-          />
-          <v-spacer/>
-          <v-text-field
-            v-model="publicKeyFilter"
-            append-icon="search"
-            label="Public key"
-            hide-details
-          />
-          <v-spacer/>
-          <v-select
-            :items="typeItems"
-            v-model="typeFilter"
-            label="Type"
-          />
-          <!-- <v-select
-            :items="networkItems"
-            v-model="networkFilter"
-            label="Network"
-          /> -->
-        </v-layout>
-      </v-container>
+      </v-subheader>
+      Filters
+      <v-layout row>
+        <v-text-field
+          v-model="nameFilter"
+          append-icon="search"
+          label="Name"
+          hide-details
+        />
+        <v-spacer/>
+        <v-text-field
+          v-model="publicKeyFilter"
+          append-icon="search"
+          label="Public key"
+          hide-details
+        />
+        <v-spacer/>
+        <v-select
+          :items="typeItems"
+          v-model="typeFilter"
+          label="Type"
+        />
+        <!-- <v-select
+          :items="networkItems"
+          v-model="networkFilter"
+          label="Network"
+        /> -->
+      </v-layout>
       <v-data-table
         :headers="headers"
         :items="filteredItems"
         :loading="accountListStatus.loading"
         hide-actions
-        class="elevation-1"
-      >
+        class="elevation-1">
         <template slot="items" slot-scope="props">
           <tr @click="editAccount(props.item.public_key)">
-            <td v-html="props.item.name"/>
-            <td v-html="props.item.public_key"/>
+            <td>{{ props.item.name }}</td>
+            <td class="public-key">
+              {{ props.item.public_key }}
+              <a
+                v-clipboard:copy="props.item.public_key"
+                v-clipboard:success="() => onCopy(props.item.public_key)"
+                class="wallet-link"
+                @click="stopPropagation">
+                <v-icon>file_copy</v-icon>
+              </a>
+              <span v-if="props.item.public_key === copiedAccount">Copied</span>
+            </td>
             <td class="text-xs-right">{{ props.item.type }}</td>
             <!-- <td class="text-xs-right">{{ props.item.network }}</td> -->
             <td class="text-xs-right" v-html="props.item.balances"/>
           </tr>
         </template>
       </v-data-table>
-    </v-card>
+    </v-container>
   </v-flex>
 </template>
 
@@ -86,7 +93,7 @@ export default {
       // networkItems: [
       //   { text: 'Funding' },
       // ]
-
+      copiedAccount: null,
     };
   },
   computed: {
@@ -124,10 +131,20 @@ export default {
     },
     onRefresh () {
       this.getAccountList();
+    },
+    onCopy (account) {
+      this.copiedAccount = account;
+    },
+    stopPropagation (e) {
+      e.stopPropagation();
     }
   }
 };
 </script>
 
 <style lang="scss" scoped>
+td.public-key {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>

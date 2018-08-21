@@ -9,11 +9,11 @@ export default new Router({
     { path: '/login', component: require('@/pages/Login').default, name: 'Login', meta: { auth: false } },
     {
       path: '/',
-      component: require('@/pages/Home').default,
+      component: require('@/pages/Layout').default,
       name: 'home',
       meta: { auth: true },
       children: [
-        { path: '/dashboard', component: require('@/pages/Dashboard').default, name: 'Dashboard' },
+        { path: '/', component: require('@/pages/Home').default, name: 'Home' },
 
         { path: '/users', component: require('@/pages/users/UserList').default, name: 'UserList' },
         { path: '/users/add', component: require('@/pages/users/AddUser').default, name: 'AddUser' },

@@ -9,6 +9,7 @@ import Vuelidate from 'vuelidate';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
 
+import VueClipboard from 'vue-clipboard2';
 import Vuetify from 'vuetify';
 import 'vuetify/dist/vuetify.min.css';
 // import 'material-design-icons-iconfont/dist/material-design-icons.css';
@@ -21,6 +22,7 @@ Vue.router = router;
 
 Vue.use(Vuelidate);
 Vue.use(Vuetify);
+Vue.use(VueClipboard);
 
 // setup axios
 axios.defaults.baseURL = process.env.AXIOS_BASE_URL;

@@ -1,78 +1,76 @@
 <template>
   <v-flex v-if="accountData" xs12 sm12>
-    <v-card>
+    <v-container>
       <v-progress-linear v-if="loadingDetails" :indeterminate="true"/>
-      <v-card-title>
+      <v-subheader class="headline">
         Edit Account
         <v-spacer/>
-      </v-card-title>
+      </v-subheader>
       <div v-if="detailsErrorMessages.length > 0">
         <v-subheader v-for="error in detailsErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
       </div>
-      <v-container v-if="accountData" row justify-space-between>
+      <div v-if="accountData" row justify-space-between>
         <account-details-form
           :data="accountData"
           @setName="setName"
           @setDescription="setDescription"/>
-      </v-container>
-    </v-card>
+      </div>
+    </v-container>
     <br v-if="accountData.type === 'issuing'">
-    <v-card v-if="accountData.type === 'issuing'">
+    <v-container v-if="accountData.type === 'issuing'">
       <v-progress-linear v-if="loadingAssets" :indeterminate="true"/>
       <div v-if="assetsErrorMessages.length > 0">
         <v-subheader v-for="error in assetsErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
       </div>
-      <v-container v-if="accountData" row justify-space-between>
+      <div v-if="accountData" row justify-space-between>
         <account-assets-form
           :data="accountData"
           @addAssetCode="addAssetCode"
-          @deleteAssetCode="deleteAssetCode"
-        />
-      </v-container>
-    </v-card>
+          @deleteAssetCode="deleteAssetCode"/>
+      </div>
+    </v-container>
     <br v-if="accountData.type !== 'funding'">
-    <v-card v-if="accountData.type !== 'funding'">
+    <v-container v-if="accountData.type !== 'funding'">
       <v-progress-linear v-if="loadingSigners" :indeterminate="true"/>
       <div v-if="signersErrorMessages.length > 0">
         <v-subheader v-for="error in signersErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
       </div>
-      <v-container v-if="accountData" row justify-space-between>
+      <div v-if="accountData" row justify-space-between>
         <account-signers-form
           :data="accountData"
           @addAllowTrustSigner="data => addSigner(data, 'allowtrust')"
           @deleteAllowTrustSigner="data => deleteSigner(data, 'allowtrust')"
           @addOtherSigner="data => addSigner(data, 'other')"
-          @deleteOtherSigner="data => deleteSigner(data, 'other')"
-        />
-      </v-container>
-    </v-card>
+          @deleteOtherSigner="data => deleteSigner(data, 'other')"/>
+      </div>
+    </v-container>
     <br v-if="accountData.type !== 'funding'">
-    <v-card v-if="accountData.type !== 'funding'">
+    <v-container v-if="accountData.type !== 'funding'">
       <v-progress-linear v-if="loadingStellar" :indeterminate="true"/>
-      <v-card-title>
+      <v-subheader class="headline">
         Edit Stellar data
         <v-spacer/>
-      </v-card-title>
+      </v-subheader>
       <div v-if="stellarErrorMessages.length > 0">
         <v-subheader v-for="error in stellarErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
       </div>
-      <v-container v-if="accountData" row justify-space-between>
+      <div v-if="accountData" row justify-space-between>
         <account-stellar-form
           :data="accountData"
           @setStellarData="setStellarData"/>
-      </v-container>
-    </v-card>
+      </div>
+    </v-container>
     <br>
-    <v-card>
+    <v-container>
       <v-progress-linear v-if="loadingDelete" :indeterminate="true"/>
       <div v-if="deleteErrorMessages.length > 0">
         <v-subheader v-for="error in deleteErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
       </div>
-      <v-container v-if="accountData" row justify-space-between>
+      <div v-if="accountData" row justify-space-between>
         <v-btn @click="onDelete">Delete account</v-btn>
         <!-- <v-btn @click="onPayment">Make a payment</v-btn> -->
-      </v-container>
-    </v-card>
+      </div>
+    </v-container>
   </v-flex>
 </template>
 
