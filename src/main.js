@@ -43,6 +43,13 @@ Vue.use(require('@websanova/vue-auth'), {
   rolesVar: 'groups'
 });
 
+async function logBuildDates () {
+  /* global __BUILD_DATE__ */
+  console.log(`Admin v0.1.0 - Build date: ${__BUILD_DATE__}`);
+}
+
+logBuildDates();
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
