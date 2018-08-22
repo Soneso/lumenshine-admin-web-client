@@ -75,21 +75,21 @@ export default {
           icon: 'keyboard_arrow_up',
           'icon-alt': 'keyboard_arrow_down',
           text: 'ICO Management',
-          active: false,
+          active: this.$route.path.startsWith('/ico'),
           roles: ['Administrators', 'Developers'],
         },
         {
           icon: 'keyboard_arrow_up',
           'icon-alt': 'keyboard_arrow_down',
           text: 'Customer Management',
-          active: false,
+          active: this.$route.path.startsWith('/customer'),
           roles: ['Administrators', 'Developers'],
         },
         {
           icon: 'keyboard_arrow_up',
           'icon-alt': 'keyboard_arrow_down',
           text: 'Stellar Accounts',
-          active: false,
+          active: this.$route.path.startsWith('/accounts'),
           roles: ['Administrators', 'Developers'],
           children: [
             { text: 'All accounts', link: '/accounts' },
@@ -100,7 +100,7 @@ export default {
           icon: 'keyboard_arrow_up',
           'icon-alt': 'keyboard_arrow_down',
           text: 'Wallet management',
-          active: false,
+          active: this.$route.path.startsWith('/known_currencies'),
           roles: ['Administrators', 'Developers'],
           children: [
             { text: 'Promos', link: '/promos' },
@@ -112,7 +112,7 @@ export default {
           icon: 'keyboard_arrow_up',
           'icon-alt': 'keyboard_arrow_down',
           text: 'Team',
-          active: false,
+          active: this.$route.path.startsWith('/users'),
           roles: ['Administrators', 'Developers'],
           children: [
             { text: 'Members', link: '/users' },
