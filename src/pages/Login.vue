@@ -57,7 +57,7 @@ export default {
       this.$auth.login({
         data: { username: this.email, password: this.password },
         rememberMe: true,
-        redirect: '/dashboard',
+        redirect: '/',
         error (err) {
           this.errorMessage = err.response.data;
         },
