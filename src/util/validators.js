@@ -1,9 +1,9 @@
 export function publicKey (value) {
-  return /^[0-9A-Z]{56}$/.test(value);
+  return /^G[0-9A-Z]{55}$/.test(value);
 };
 
 export function secretSeed (value) {
-  return /^[0-9A-Z]{56}$/.test(value);
+  return /^S[0-9A-Z]{55}$/.test(value);
 };
 
 export function assetCode (value) {

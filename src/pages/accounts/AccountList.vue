@@ -6,33 +6,37 @@
         <v-spacer/>
         <v-btn @click="onRefresh">Refresh</v-btn>
       </v-subheader>
-      Filters
-      <v-layout row>
-        <v-text-field
-          v-model="nameFilter"
-          append-icon="search"
-          label="Name"
-          hide-details
-        />
-        <v-spacer/>
-        <v-text-field
-          v-model="publicKeyFilter"
-          append-icon="search"
-          label="Public key"
-          hide-details
-        />
-        <v-spacer/>
-        <v-select
-          :items="typeItems"
-          v-model="typeFilter"
-          label="Type"
-        />
-        <!-- <v-select
-          :items="networkItems"
-          v-model="networkFilter"
-          label="Network"
-        /> -->
-      </v-layout>
+      <v-flex xs9 sm9>
+        <v-layout row>
+          <v-text-field
+            v-model="nameFilter"
+            append-icon="search"
+            label="Name"
+            hide-details
+            persistent-hint
+          />
+          <v-spacer/>
+          <v-select
+            :items="typeItems"
+            v-model="typeFilter"
+            label="Type"
+          />
+        </v-layout>
+        <v-layout row>
+          <v-text-field
+            v-model="publicKeyFilter"
+            append-icon="search"
+            label="Public key"
+            hide-details
+          />
+          <!-- <v-select
+            :items="networkItems"
+            v-model="networkFilter"
+            label="Network"
+          /> -->
+        </v-layout>
+        <br><br>
+      </v-flex>
       <v-data-table
         :headers="headers"
         :items="filteredItems"
@@ -70,9 +74,12 @@ export default {
   name: 'AccountList',
   data () {
     return {
+      pagination: {
+        sortBy: 'type'
+      },
       headers: [
         { text: 'Name', align: 'left', value: 'name' },
-        { text: 'Public key', align: 'left', value: 'publicKey' },
+        { text: 'Public key', align: 'left', value: 'public_key' },
         { text: 'Type', value: 'type' },
         // { text: 'Network', value: 'network' },
         { text: 'Balances', value: 'balanceXLM' }

@@ -3,7 +3,7 @@
     <v-container v-if="showForm" row justify-space-between>
       <v-progress-linear v-if="loading" :indeterminate="true"/>
       <v-subheader class="headline">
-        Add Stellar account
+        Add a new Stellar account
       </v-subheader>
       <div v-if="errorMessages.length > 0">
         <v-subheader v-for="error in errorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
@@ -11,15 +11,23 @@
       <account-add-form :data="formData" :funding-accounts="fundingAccounts" :issuing-accounts="issuingAccounts" @submit="submitForm"/>
     </v-container>
     <v-container v-if="!showForm" row justify-space-between>
+      <v-subheader class="headline">
+        Add a new Stellar account
+      </v-subheader>
+      <v-progress-linear v-if="loading" :indeterminate="true"/>
       <account-confirm-form
         :errors="errorMessages"
         :data="formData"
         :funding-accounts="fundingAccounts"
         :issuing-accounts="issuingAccounts"
         :key-pair="keyPair"
+        :success="success"
+        :new-account="newAccount"
+        :loading="loading"
         @submit="onCreateAccountClick"
         @back="onBackClick"
-        @cancel="onCancelClick" />
+        @cancel="onCancelClick"
+        @edit="onEditClick" />
     </v-container>
   </v-flex>
 </template>
@@ -48,6 +56,8 @@ export default {
       errorMessages: [],
 
       keyPair: null,
+
+      success: false,
     };
   },
   computed: {
@@ -59,6 +69,10 @@ export default {
     issuingAccounts () {
       if (!this.accountList) return [];
       return this.accountList.filter(acc => acc.type === 'issuing');
+    },
+    newAccount () {
+      if (!this.accountList || !this.keyPair.publicKey) return undefined;
+      return this.accountList.find(acc => acc.public_key === this.keyPair.publicKey);
     }
   },
   watch: {
@@ -78,16 +92,17 @@ export default {
     async submitForm (data) {
       this.errorMessages = [];
       this.showForm = false;
+      this.success = false;
       const keyPair = StellarSdk.Keypair.random();
       this.keyPair = { publicKey: keyPair.publicKey(), privateKey: keyPair.secret() };
       this.formData = data;
     },
-    async onCreateAccountClick (secret = '') {
+    async onCreateAccountClick ({secret = '', signer = null}) {
       this.errorMessages = [];
       this.loading = true;
       try {
         if (['issuing', 'worker'].includes(this.formData.type)) {
-          await this.createStellarAccount(this.keyPair.publicKey, this.formData.fundingAmount, secret);
+          await this.createStellarAccount(signer, this.keyPair.publicKey, this.formData.fundingAmount, secret);
         }
         if (this.formData.type === 'worker') {
           await this.createTrustline(this.formData.issuerAssetCode, this.formData.issuingAccount, this.keyPair.privateKey);
@@ -117,11 +132,25 @@ export default {
         }
 
         await Promise.all(queries);
-
-        this.$router.push({ path: '/accounts' });
+        this.success = true;
+        // this.$router.push({ path: '/accounts' });
       } catch (err) {
         this.loading = false;
         console.error(err);
+        console.log(err.data, err.message, err.response);
+        if (err.response && err.response.data) {
+          const data = err.response.data;
+          if (data.extras && data.extras.result_codes && data.extras.result_codes.transaction) {
+            const stellarError = data.extras.result_codes.transaction;
+            if (stellarError === 'tx_bad_auth') {
+              this.errorMessages = [{ error_message: 'Invalid secret seed.' }];
+              return;
+            } else if (stellarError === 'op_underfunded') {
+              this.errorMessages = [{ error_message: 'Not enough funds in the funding account.' }];
+              return;
+            }
+          }
+        }
         this.errorMessages = [{ error_message: 'Cannot create account, try again later.' }];
       }
       this.loading = false;
@@ -132,12 +161,16 @@ export default {
     onCancelClick () {
       this.$router.push({ path: '/accounts' });
     },
-    async createStellarAccount (toAccount, amount, secret) {
+    onEditClick () {
+      this.$router.push({ path: `/accounts/${this.newAccount.public_key}` });
+    },
+    async createStellarAccount (fromAccount, toAccount, amount, secret) {
       const sourceKeypair = StellarSdk.Keypair.fromSecret(secret);
-      const sourcePublicKey = sourceKeypair.publicKey();
+      // const sourcePublicKey = sourceKeypair.publicKey();
 
-      return StellarAPI.loadAccount(sourcePublicKey)
+      return StellarAPI.loadAccount(fromAccount)
         .then(account => {
+          console.log('account', account);
           const transaction = new StellarSdk.TransactionBuilder(account)
             .addOperation(StellarSdk.Operation.createAccount({
               destination: toAccount,
@@ -167,25 +200,25 @@ export default {
           return StellarAPI.submitTransaction(transaction);
         });
     },
-    async demoTransfer (assetCode, issuerSecret, worker) {
-      const sourceKeypair = StellarSdk.Keypair.fromSecret(issuerSecret);
-      const sourcePublicKey = sourceKeypair.publicKey();
+    // async demoTransfer (assetCode, issuerSecret, worker) {
+    //   const sourceKeypair = StellarSdk.Keypair.fromSecret(issuerSecret);
+    //   const sourcePublicKey = sourceKeypair.publicKey();
 
-      return StellarAPI.loadAccount(sourcePublicKey)
-        .then(account => {
-          const transaction = new StellarSdk.TransactionBuilder(account)
-            .addOperation(StellarSdk.Operation.payment({
-              destination: worker,
-              asset: new StellarSdk.Asset(assetCode, sourcePublicKey),
-              amount: '10'
-            }))
-            .build();
+    //   return StellarAPI.loadAccount(sourcePublicKey)
+    //     .then(account => {
+    //       const transaction = new StellarSdk.TransactionBuilder(account)
+    //         .addOperation(StellarSdk.Operation.payment({
+    //           destination: worker,
+    //           asset: new StellarSdk.Asset(assetCode, sourcePublicKey),
+    //           amount: '10'
+    //         }))
+    //         .build();
 
-          transaction.sign(sourceKeypair);
+    //       transaction.sign(sourceKeypair);
 
-          return StellarAPI.submitTransaction(transaction);
-        });
-    }
+    //       return StellarAPI.submitTransaction(transaction);
+    //     });
+    // }
   }
 };
 </script>

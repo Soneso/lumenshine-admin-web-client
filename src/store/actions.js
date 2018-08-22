@@ -68,7 +68,12 @@ export default {
         AccountService.getAccountDetails(publicKey),
         horizonServer.loadAccount(publicKey).catch(err => err)
       ]);
-      commit('SET_ACCOUNT', {...acc, ...backendRes, ...stellarRes, detailsLoaded: true});
+      commit('SET_ACCOUNT', {
+        ...acc,
+        ...backendRes,
+        ...(!(stellarRes instanceof Error) ? stellarRes : {}),
+        detailsLoaded: true
+      });
     } catch (err) {
       commit('SET_ACCOUNT_LIST_ERROR', err.data);
     }

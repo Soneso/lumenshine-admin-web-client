@@ -1,19 +1,23 @@
 <template>
   <form>
-    <v-text-field
-      v-model="name"
-      :error-messages="nameErrors"
-      label="Name"
-      required
-      @input="$v.name.$touch()"
-      @blur="$v.name.$touch()"
-    />
+    <v-layout row>
+      <v-text-field
+        v-model="name"
+        :error-messages="nameErrors"
+        label="Name"
+        required
+        @input="$v.name.$touch()"
+        @blur="$v.name.$touch()"
+      />
 
-    <v-select
-      :items="typeItems"
-      v-model="type"
-      label="Type"
-    />
+      <v-spacer/>
+
+      <v-select
+        :items="typeItems"
+        v-model="type"
+        label="Type"
+      />
+    </v-layout>
 
     <!-- <v-select
       :items="networkItems"
@@ -21,57 +25,66 @@
       label="Network"
     /> -->
 
-    <v-text-field
+    <v-textarea
       v-model="description"
       :error-messages="descriptionErrors"
       label="Description"
       required
+      rows="1"
+      auto-grow
       @input="$v.description.$touch()"
       @blur="$v.description.$touch()"
     />
 
-    <v-select
-      v-if="type !== 'funding'"
-      :items="fundingAccountItems"
-      v-model="fundingAccount"
-      label="Fund from account"
-    />
+    <v-layout v-if="type !== 'funding'" row>
+      <v-select
+        :items="fundingAccountItems"
+        v-model="fundingAccount"
+        label="Fund from account"
+      />
 
-    <v-text-field
-      v-if="type !== 'funding'"
-      v-model="fundingAmount"
-      :error-messages="fundingAmountErrors"
-      label="Funding amount (XLM)"
-      required
-      @input="$v.fundingAmount.$touch()"
-      @blur="$v.fundingAmount.$touch()"
-    />
+      <v-spacer/>
 
-    <v-text-field
-      v-if="type === 'issuing'"
-      v-model="assetCode"
-      :error-messages="assetCodeErrors"
-      label="Asset code"
-      required
-      @input="$v.assetCode.$touch()"
-      @blur="$v.assetCode.$touch()"
-    />
+      <v-text-field
+        v-model="fundingAmount"
+        :error-messages="fundingAmountErrors"
+        label="Funding amount (XLM)"
+        required
+        @input="$v.fundingAmount.$touch()"
+        @blur="$v.fundingAmount.$touch()"
+      />
+    </v-layout>
 
-    <v-select
-      v-if="type === 'worker'"
-      :items="issuingAccountItems"
-      v-model="issuingAccount"
-      label="Trust issuing account"
-    />
+    <v-flex sm6>
+      <v-text-field
+        v-if="type === 'issuing'"
+        v-model="assetCode"
+        :error-messages="assetCodeErrors"
+        label="Asset code"
+        required
+        @input="$v.assetCode.$touch()"
+        @blur="$v.assetCode.$touch()"
+      />
+    </v-flex>
 
-    <v-select
-      v-if="type === 'worker'"
-      :items="issuerAssetCodes"
-      v-model="issuerAssetCode"
-      label="Trust asset code"
-    />
+    <v-layout v-if="type === 'worker'" row>
+      <v-select
+        :items="issuingAccountItems"
+        v-model="issuingAccount"
+        label="Trust issuing account"
+      />
 
-    <v-btn @click="submitForm">Next</v-btn>
+      <v-spacer/>
+
+      <v-select
+        :items="issuerAssetCodes"
+        v-model="issuerAssetCode"
+        label="Trust asset code"
+      />
+    </v-layout>
+
+    <br>
+    <v-btn color="okay" @click="submitForm">Create</v-btn>
   </form>
 </template>
 
@@ -202,19 +215,29 @@ export default {
     fundingAccountItems () {
       return this.fundingAccounts.filter(acc => {
         if (this.type === 'issuing') {
-          return acc.balances && acc.balances.find(bal => bal.asset_type === 'native' && bal.balance >= 1.10001);
+          return acc.balances && acc.balances.find(bal => bal.asset_type === 'native' && bal.balance >= 1.10001) &&
+            Math.max.apply(null, acc.signers.map(s => s.weight)) >= acc.thresholds.med_threshold;
         }
         if (this.type === 'worker') {
-          return acc.balances && acc.balances.find(bal => bal.asset_type === 'native' && bal.balance >= 1.60001);
+          return acc.balances && acc.balances.find(bal => bal.asset_type === 'native' && bal.balance >= 1.60001) &&
+            Math.max.apply(null, acc.signers.map(s => s.weight)) >= acc.thresholds.med_threshold;
         }
         return false;
+      }).sort((a, b) => {
+        if (a.name < b.name) return -1;
+        if (a.name > b.name) return 1;
+        return 0;
       }).map(acc => ({
         text: `${acc.name} (${acc.public_key.slice(0, 10)}...)`,
         value: acc.public_key,
       }));
     },
     issuingAccountItems () {
-      return this.issuingAccounts.map(acc => ({
+      return [...this.issuingAccounts].sort((a, b) => {
+        if (a.name < b.name) return -1;
+        if (a.name > b.name) return 1;
+        return 0;
+      }).map(acc => ({
         text: `${acc.name} (${acc.public_key.slice(0, 10)}...)`,
         value: acc.public_key,
       }));
@@ -241,10 +264,11 @@ export default {
       }
       if (val === 'issuing') {
         this.fundingAmount = '1.1';
+        this.issuerAssetCode = this.issuerAssetCodes[0].value;
       }
     },
     issuingAccount (val) {
-      if (this.issuerAssetCode === null && this.issuerAssetCodes.length > 0) {
+      if (this.issuerAssetCodes.length > 0) {
         this.issuerAssetCode = this.issuerAssetCodes[0].value;
       }
     }

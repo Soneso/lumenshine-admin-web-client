@@ -24,4 +24,24 @@ export default {
   }
 }
 
+.application .theme--light.v-label, .theme--light .v-label {
+  color: #333 !important;
+}
+
+.v-list__group {
+  border-bottom: 1px solid #bbb;
+}
+
+.success-text {
+  color: #4caf50 !important;
+}
+
+.okay {
+  background-color: #FF9900 !important;
+  border-color: #FF9900 !important;
+}
+
+a {
+  text-decoration: none;
+}
 </style>
