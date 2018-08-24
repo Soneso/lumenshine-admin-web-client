@@ -1,13 +1,16 @@
 <template>
   <form>
-    <editor-widget v-if="data.type === 'issuing'" :has-error="$v.newAssetCode.$invalid" button-text="Add new" @cancel="onCancel" @submit="onSubmit">
+    <editor-widget v-if="data.type === 'issuing'" :has-error="$v.newAssetCode.$invalid" button-text="Add" @cancel="onCancel" @submit="onSubmit">
       <template slot="header">
-        <div><strong>Asset codes:</strong></div>
+        <strong>Asset codes:</strong>
       </template>
       <table>
         <tr v-for="asset_code in data.asset_codes" :key="asset_code">
           <td>{{ asset_code }}</td>
-          <td><v-btn @click="onDelete(asset_code, data.public_key)">Delete</v-btn></td>
+          <td>
+            <a href="#">Send</a>
+            <a href="#" class="warning-text" @click="onDelete(asset_code, data.public_key)">Remove</a>
+          </td>
         </tr>
       </table>
       <template slot="editor">

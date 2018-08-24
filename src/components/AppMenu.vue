@@ -12,7 +12,14 @@
             <a href="#!" class="body-2 black--text">EDIT</a>
           </v-flex>
         </v-layout>
-        <v-list-group v-else-if="item.children" v-model="item.active" :key="item.text" :prepend-icon="item.model ? item.icon : item['icon-alt']" append-icon="">
+
+        <v-list-group
+          v-else-if="item.children"
+          v-model="item.active"
+          :key="item.text"
+          :prepend-icon="item.model ? item.icon : item['icon-alt']"
+          append-icon=""
+          class="v-list--outside">
           <v-list-tile slot="activator" :to="item.link">
             <v-list-tile-content>
               <v-list-tile-title>
@@ -28,9 +35,33 @@
               <v-list-tile-title>
                 {{ child.text }}
               </v-list-tile-title>
+
+              <v-list v-if="child.children && child.children.length > 0" class="v-list--inside">
+                <v-list-group v-if="child.children" :value="true" :key="item.text">
+
+                  <v-list-tile slot="activator" to="#">
+                    <v-list-tile-content>
+                      <v-list-tile-title>
+                        {{ currentAccount ? currentAccount.name : '' }}
+                      </v-list-tile-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+
+                  <v-list-tile-content class="pl-4">
+                    <v-list-tile v-for="(grandchild, i) in child.children" :key="i" :to="grandchild.link" class="v-list__tile--subtile" >
+                      <v-list-tile-title>
+                        {{ grandchild.text }}
+                      </v-list-tile-title>
+                    </v-list-tile>
+                  </v-list-tile-content>
+
+                </v-list-group>
+              </v-list>
+
             </v-list-tile-content>
           </v-list-tile>
         </v-list-group>
+
         <v-list-tile v-else :to="item.link" :key="item.text">
           <v-list-tile-action>
             <v-icon>{{ item.icon }}</v-icon>
@@ -41,11 +72,15 @@
             </v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
+
       </template>
     </v-list>
   </v-navigation-drawer>
 </template>
+
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
   name: 'Menu',
   props: {
@@ -59,6 +94,13 @@ export default {
       items: [],
     };
   },
+  computed: {
+    ...mapGetters(['accountList']),
+    currentAccount () {
+      if (!this.$route.params.pk || !this.accountList) return null;
+      return this.accountList.find(acc => acc.public_key === this.$route.params.pk);
+    }
+  },
   watch: {
     $route () {
       this.recalculateMenuItems();
@@ -69,6 +111,14 @@ export default {
   },
   methods: {
     recalculateMenuItems () {
+      const accountEditSubmenuItems = !this.currentAccount ? [] : [
+        { text: 'Details', link: `/accounts/${this.currentAccount.public_key}/details` },
+        ...(this.currentAccount.type !== 'funding' ? [{ text: 'Trust', link: `/accounts/${this.currentAccount.public_key}/trust` }] : []),
+        { text: 'Multi-Sig', link: `/accounts/${this.currentAccount.public_key}/multisig` },
+        { text: 'Transactions', link: `/accounts/${this.currentAccount.public_key}/transactions` },
+        ...(this.currentAccount.type !== 'funding' ? [{ text: 'Stellar form (old one)', link: `/accounts/${this.currentAccount.public_key}/stellar` }] : []), // temporary
+      ];
+
       const menu = [
         { icon: 'contacts', text: 'Home', link: '/' },
         {
@@ -92,8 +142,13 @@ export default {
           active: this.$route.path.startsWith('/accounts'),
           roles: ['Administrators', 'Developers'],
           children: [
-            { text: 'All accounts', link: '/accounts' },
-            { text: 'Add account', link: '/accounts/add' },
+            {
+              text: 'All accounts',
+              link: '/accounts',
+              children: accountEditSubmenuItems,
+              active: false
+            },
+            { text: 'Add account', link: '/accounts/add', active: false },
           ]
         },
         {
@@ -103,7 +158,7 @@ export default {
           active: this.$route.path.startsWith('/known_currencies'),
           roles: ['Administrators', 'Developers'],
           children: [
-            { text: 'Promos', link: '/promos' },
+            // { text: 'Promos', link: '/promos' },
             { text: 'Known currencies', link: '/known_currencies' },
             { text: 'Known inflation destinations', link: '/known_inflation_destinations' },
           ]
@@ -142,5 +197,5 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 </style>

@@ -1,41 +1,75 @@
 <template>
   <v-flex v-if="accountData" xs12 sm12>
-    <v-container>
+    <v-container v-if="currentPage === 'details'">
       <v-progress-linear v-if="loadingDetails" :indeterminate="true"/>
       <v-subheader class="headline">
-        Edit Account
+        Account details / Edit account
         <v-spacer/>
       </v-subheader>
       <div v-if="detailsErrorMessages.length > 0">
         <v-subheader v-for="error in detailsErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
       </div>
+
       <div v-if="accountData" row justify-space-between>
         <account-details-form
           :data="accountData"
           @setName="setName"
           @setDescription="setDescription"/>
       </div>
-    </v-container>
-    <br v-if="accountData.type === 'issuing'">
-    <v-container v-if="accountData.type === 'issuing'">
-      <v-progress-linear v-if="loadingAssets" :indeterminate="true"/>
-      <div v-if="assetsErrorMessages.length > 0">
-        <v-subheader v-for="error in assetsErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
+
+      <div v-if="accountData.type !== 'funding'">
+        <br>
+        <v-progress-linear v-if="loadingStellar" :indeterminate="true"/>
+        <div v-if="stellarErrorMessages.length > 0">
+          <v-subheader v-for="error in stellarErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
+        </div>
+        <div v-if="accountData" row justify-space-between>
+          <account-home-domain-form
+            :data="accountData"
+            @setStellarData="setStellarData"/>
+        </div>
       </div>
-      <div v-if="accountData" row justify-space-between>
-        <account-assets-form
-          :data="accountData"
-          @addAssetCode="addAssetCode"
-          @deleteAssetCode="deleteAssetCode"/>
+
+      <div v-if="accountData.type === 'issuing'">
+        <br>
+        <v-progress-linear v-if="loadingAssets" :indeterminate="true"/>
+        <div v-if="assetsErrorMessages.length > 0">
+          <v-subheader v-for="error in assetsErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
+        </div>
+        <div v-if="accountData" row justify-space-between>
+          <account-assets-form
+            :data="accountData"
+            @addAssetCode="addAssetCode"
+            @deleteAssetCode="deleteAssetCode"/>
+        </div>
+      </div>
+
+      <div>
+        <v-progress-linear v-if="loadingDelete" :indeterminate="true"/>
+        <div v-if="deleteErrorMessages.length > 0">
+          <v-subheader v-for="error in deleteErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
+        </div>
+        <div v-if="accountData" row justify-space-between>
+          <v-btn class="error" @click="onDelete">Remove account</v-btn>
+          <p>Hint: The account will be removed from the Admin Portal only. It will not be removed from the Stellar Network.</p>
+          <!-- <v-btn @click="onPayment">Make a payment</v-btn> -->
+        </div>
       </div>
     </v-container>
-    <br v-if="accountData.type !== 'funding'">
-    <v-container v-if="accountData.type !== 'funding'">
-      <v-progress-linear v-if="loadingSigners" :indeterminate="true"/>
+
+    <v-container v-if="currentPage === 'multisig'">
+      <v-progress-linear v-if="loadingStellar || loadingSigners" :indeterminate="true"/>
+      <v-subheader class="headline">
+        Multi-Sig details / Edit Multi-Sig
+        <v-spacer/>
+      </v-subheader>
       <div v-if="signersErrorMessages.length > 0">
         <v-subheader v-for="error in signersErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
       </div>
       <div v-if="accountData" row justify-space-between>
+        <account-thresholds-form
+          :data="accountData"
+          @setStellarData="setStellarData"/>
         <account-signers-form
           :data="accountData"
           @addAllowTrustSigner="data => addSigner(data, 'allowtrust')"
@@ -44,8 +78,27 @@
           @deleteOtherSigner="data => deleteSigner(data, 'other')"/>
       </div>
     </v-container>
+
+    <v-container v-if="currentPage === 'trust'">
+      <v-progress-linear v-if="loadingStellar" :indeterminate="true"/>
+      <v-subheader class="headline">
+        Trust details / Edit trust
+        <v-spacer/>
+      </v-subheader>
+      <div v-if="signersErrorMessages.length > 0">
+        <v-subheader v-for="error in signersErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
+      </div>
+      <div v-if="accountData && !loadingStellar" row justify-space-between>
+        <account-trust-form
+          :data="accountData"
+          :loading="loadingStellar"
+          @setStellarData="setStellarData"/>
+      </div>
+    </v-container>
+
     <br v-if="accountData.type !== 'funding'">
-    <v-container v-if="accountData.type !== 'funding'">
+
+    <v-container v-if="accountData.type !== 'funding' && currentPage === 'stellar'">
       <v-progress-linear v-if="loadingStellar" :indeterminate="true"/>
       <v-subheader class="headline">
         Edit Stellar data
@@ -58,17 +111,6 @@
         <account-stellar-form
           :data="accountData"
           @setStellarData="setStellarData"/>
-      </div>
-    </v-container>
-    <br>
-    <v-container>
-      <v-progress-linear v-if="loadingDelete" :indeterminate="true"/>
-      <div v-if="deleteErrorMessages.length > 0">
-        <v-subheader v-for="error in deleteErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
-      </div>
-      <div v-if="accountData" row justify-space-between>
-        <v-btn @click="onDelete">Delete account</v-btn>
-        <!-- <v-btn @click="onPayment">Make a payment</v-btn> -->
       </div>
     </v-container>
   </v-flex>
@@ -84,13 +126,16 @@ import AccountAssetsForm from '@/forms/AccountAssetsForm';
 import AccountDetailsForm from '@/forms/AccountDetailsForm';
 import AccountSignersForm from '@/forms/AccountSignersForm';
 import AccountStellarForm from '@/forms/AccountStellarForm';
+import AccountThresholdsForm from '@/forms/AccountThresholdsForm';
+import AccountTrustForm from '@/forms/AccountTrustForm';
+import AccountHomeDomainForm from '@/forms/AccountHomeDomainForm';
 
 const StellarAPI = new StellarSdk.Server(process.env.HORIZON_URL);
 StellarSdk.Network.useTestNetwork();
 
 export default {
   name: 'EditAccount',
-  components: { AccountStellarForm, AccountAssetsForm, AccountDetailsForm, AccountSignersForm },
+  components: { AccountStellarForm, AccountAssetsForm, AccountDetailsForm, AccountSignersForm, AccountThresholdsForm, AccountTrustForm, AccountHomeDomainForm },
   data () {
     return {
       loadingDetails: false,
@@ -113,6 +158,9 @@ export default {
     ...mapGetters(['accountList']),
     accountData () {
       return this.$store.getters.account(this.$route.params.pk);
+    },
+    currentPage () {
+      return this.$route.params.page || 'details';
     }
   },
   async created () {
@@ -180,7 +228,7 @@ export default {
           (!data.authRequired && this.accountData.flags.auth_required ? 0x1 : 0) +
           (!data.authRevocable && this.accountData.flags.auth_revocable ? 0x2 : 0);
 
-        const masterKey = this.accountData.signers.find(signer => signer.public_key === this.data.id);
+        const masterKey = data.masterKeyWeight !== undefined && this.accountData.signers.find(signer => signer.public_key === this.data.id);
 
         const transaction = new StellarSdk.TransactionBuilder(account)
           .addOperation(StellarSdk.Operation.setOptions({
@@ -198,7 +246,7 @@ export default {
               highThreshold: data.thresholdHigh,
             } : {}),
 
-            ...(masterKey && data.masterKeyWeight !== masterKey.weight ? {
+            ...(data.masterKeyWeight !== undefined && masterKey && data.masterKeyWeight !== masterKey.weight ? {
               masterWeight: data.masterKeyWeight,
             } : {}),
 

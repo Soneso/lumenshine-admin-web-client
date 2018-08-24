@@ -1,11 +1,13 @@
 <template>
-  <div>
+  <div class="editor-widget">
     <slot name="header"/>
+    <a v-if="!editorOpen && !showEditForm" @click="onEdit">{{ buttonText }}</a>
+    <a v-if="editorOpen || showEditForm" class="success-text" @click="onSave">Save</a>
+    <a v-if="editorOpen || showEditForm" class="warning-text" @click="onCancel">Cancel</a>
+    <br>
     <slot v-if="!editorOpen && !showEditForm"/>
     <slot v-else name="editor"/>
-    <v-btn v-if="!editorOpen && !showEditForm" @click="onEdit">{{ buttonText }}</v-btn>
-    <v-btn v-if="editorOpen || showEditForm" @click="onSave">Save</v-btn>
-    <v-btn v-if="editorOpen || showEditForm" @click="onCancel">Cancel</v-btn>
+    <br><br>
   </div>
 </template>
 <script>
@@ -49,4 +51,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+a {
+  padding: 0 10px;
+}
+.editor-widget {
+  width: 100%;
+}
 </style>

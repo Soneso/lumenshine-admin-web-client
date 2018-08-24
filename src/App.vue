@@ -36,6 +36,10 @@ export default {
   color: #4caf50 !important;
 }
 
+.warning-text {
+  color: #CF2B29 !important;
+}
+
 .okay {
   background-color: #FF9900 !important;
   border-color: #FF9900 !important;
@@ -44,4 +48,15 @@ export default {
 a {
   text-decoration: none;
 }
+
+.v-list--outside {
+  .v-list__tile {
+    height: auto !important;
+    min-height: 40px;
+  }
+  .v-list--inside {
+    width: 100%;
+  }
+}
+
 </style>

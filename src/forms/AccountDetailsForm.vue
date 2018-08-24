@@ -1,54 +1,70 @@
 <template>
-  <form>
-    <editor-widget :has-error="$v.name.$invalid" @cancel="onCancel" @submit="setName">
-      <template slot="header">
-        <strong>Name:</strong>
-      </template>
-      {{ name }}
-      <template slot="editor">
-        <v-text-field
-          v-model="name"
-          :error-messages="nameErrors"
-          label="Name"
-          required
-          single-line
-          @input="$v.name.$touch()"
-          @blur="$v.name.$touch()"
-        />
-      </template>
-    </editor-widget>
+  <v-flex xs12 sm7>
+    <form>
+      <v-layout row justify-space-between>
+        <editor-widget :has-error="$v.name.$invalid" @cancel="onCancel" @submit="setName">
+          <template slot="header">
+            <strong>Name:</strong>
+          </template>
+          {{ name }}
+          <template slot="editor">
+            <v-text-field
+              v-model="name"
+              :error-messages="nameErrors"
+              label="Name"
+              required
+              single-line
+              @input="$v.name.$touch()"
+              @blur="$v.name.$touch()"
+            />
+          </template>
+        </editor-widget>
+        <div>
+          <strong>Type:</strong>
+          {{ data.type }}
+        </div>
+      </v-layout>
 
-    <editor-widget :has-error="$v.description.$invalid" @cancel="onCancel" @submit="setDescription">
-      <template slot="header">
-        <strong>Description:</strong>
-      </template>
-      {{ description }}
-      <template slot="editor">
-        <v-text-field
-          v-model="description"
-          :error-messages="descriptionErrors"
-          label="Description"
-          required
-          single-line
-          @input="$v.description.$touch()"
-          @blur="$v.description.$touch()"
-        />
-      </template>
-    </editor-widget>
+      <div>
+        <strong>Public key:</strong> {{ data.public_key }}
+        <a
+          v-clipboard:copy="data.public_key"
+          v-clipboard:success="() => onCopy(data.public_key)"
+          class="wallet-link">
+          <v-icon>file_copy</v-icon>
+        </a>
+        <span v-if="data.public_key === copiedAccount">Copied</span>
+      </div>
+      <br>
 
-    <div><strong>Type:</strong> {{ data.type }}</div><br>
+      <editor-widget :has-error="$v.description.$invalid" @cancel="onCancel" @submit="setDescription">
+        <template slot="header">
+          <strong>Description:</strong>
+        </template>
+        {{ description }}
+        <template slot="editor">
+          <v-text-field
+            v-model="description"
+            :error-messages="descriptionErrors"
+            label="Description"
+            required
+            single-line
+            @input="$v.description.$touch()"
+            @blur="$v.description.$touch()"
+          />
+        </template>
+      </editor-widget>
 
-    <div><strong>Public key:</strong> {{ data.public_key }}</div><br>
+      <div>
+        <strong>Balances:</strong>
+        <table v-if="formattedBalances">
+          <tr v-for="balance in formattedBalances" :key="balance"><td>{{ balance }}</td></tr>
+        </table>
+        <span v-else>Account not funded</span>
+      </div>
 
-    <div>
-      <strong>Balances:</strong>
-      <table v-if="formattedBalances">
-        <tr v-for="balance in formattedBalances" :key="balance"><td>{{ balance }}</td></tr>
-      </table>
-      <span v-else>Account not funded</span>
-    </div>
-
-  </form>
+    </form>
+  </v-flex>
 </template>
 
 <script>
@@ -85,6 +101,8 @@ export default {
     return {
       name: this.data.name || '',
       description: this.data.description || '',
+
+      copiedAccount: null,
     };
   },
   computed: {
@@ -129,7 +147,10 @@ export default {
       this.name = this.data.name || '';
       this.description = this.data.description || '';
       this.$v.$reset();
-    }
+    },
+    onCopy (account) {
+      this.copiedAccount = account;
+    },
   }
 };
 </script>

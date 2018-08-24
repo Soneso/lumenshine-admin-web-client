@@ -24,7 +24,8 @@ export default new Router({
 
         { path: '/accounts', component: require('@/pages/accounts/AccountList').default, name: 'AccountList' },
         { path: '/accounts/add', component: require('@/pages/accounts/AddAccount').default, name: 'AddAccount' },
-        { path: '/accounts/:pk', component: require('@/pages/accounts/EditAccount').default, name: 'EditAccount' },
+        { path: '/accounts/:pk/transactions', component: require('@/pages/accounts/AccountTransactionList').default, name: 'AccountTransactionList' },
+        { path: '/accounts/:pk/:page?', component: require('@/pages/accounts/EditAccount').default, name: 'EditAccount' },
 
         { path: '/known_currencies', component: require('@/pages/known_currencies/KnownCurrenciesList').default, name: 'KnownCurrenciesList' },
         { path: '/known_currencies/add', component: require('@/pages/known_currencies/AddKnownCurrency').default, name: 'AddKnownCurrency' },

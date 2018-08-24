@@ -12,17 +12,27 @@
       </template>
       <table v-if="extendedAllowTrustSigners.length > 0" class="table">
         <thead>
-          <th>Name</th>
-          <th>Public key</th>
+          <th>Name / Public key</th>
+          <th>Type</th>
           <th>Weight</th>
           <th>Actions</th>
         </thead>
         <tr v-for="signer in extendedAllowTrustSigners" :key="signer.public_key">
-          <td>{{ signer.name }}</td>
-          <td>{{ signer.public_key }}</td>
+          <td>
+            {{ signer.name }}<br>
+            {{ signer.public_key }}
+            <a
+              v-clipboard:copy="signer.public_key"
+              v-clipboard:success="() => onCopy(signer.public_key)"
+              class="wallet-link">
+              <v-icon>file_copy</v-icon>
+            </a>
+            <span v-if="signer.public_key === copiedAccount">Copied</span>
+          </td>
+          <td>allow trust</td>
           <td>{{ signer.weight }}</td>
           <td>
-            <v-btn @click="onOpenDeleteForm(signer.public_key, 'allowtrust')">Delete</v-btn>
+            <a href="#" class="warning-text" @click="onOpenDeleteForm(signer.public_key, 'allowtrust')">Remove</a>
           </td>
         </tr>
       </table>
@@ -91,17 +101,27 @@
       </template>
       <table v-if="extendedOtherSigners.length > 0" class="table">
         <thead>
-          <th>Name</th>
-          <th>Public key</th>
+          <th>Name / Public key</th>
+          <th>Type</th>
           <th>Weight</th>
           <th>Actions</th>
         </thead>
         <tr v-for="signer in extendedOtherSigners" :key="signer.public_key">
-          <td>{{ signer.name }}</td>
-          <td>{{ signer.public_key }}</td>
+          <td>
+            {{ signer.name }}<br>
+            {{ signer.public_key }}
+            <a
+              v-clipboard:copy="signer.public_key"
+              v-clipboard:success="() => onCopy(signer.public_key)"
+              class="wallet-link">
+              <v-icon>file_copy</v-icon>
+            </a>
+            <span v-if="signer.public_key === copiedAccount">Copied</span>
+          </td>
+          <td>other</td>
           <td>{{ signer.weight }}</td>
           <td>
-            <v-btn @click="onOpenDeleteForm(signer.public_key, 'other')">Delete</v-btn>
+            <a href="#" class="warning-text" @click="onOpenDeleteForm(signer.public_key, 'other')">Remove</a>
           </td>
         </tr>
       </table>
@@ -224,6 +244,8 @@ export default {
       signerSecret: '',
       signerWeight: 1,
       secret: '',
+
+      copiedAccount: null,
     };
   },
   computed: {
@@ -348,7 +370,10 @@ export default {
       this.secret = '';
 
       this.$v.$reset();
-    }
+    },
+    onCopy (account) {
+      this.copiedAccount = account;
+    },
   }
 };
 </script>
@@ -356,11 +381,13 @@ export default {
 <style lang="scss" scoped>
 .table {
   border-collapse: collapse;
-  text-align: center;
+  text-align: left;
   width: 100%;
   box-sizing: border-box;
+  th {
+    border-bottom: 1px solid #aaa;
+  }
   td, th {
-    border: 1px solid #aaa;
     padding: 10px;
     word-break: break-word;
   }
