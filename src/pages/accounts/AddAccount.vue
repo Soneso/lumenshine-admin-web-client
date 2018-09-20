@@ -137,7 +137,6 @@ export default {
       } catch (err) {
         this.loading = false;
         console.error(err);
-        console.log(err.data, err.message, err.response);
         if (err.response && err.response.data) {
           const data = err.response.data;
           if (data.extras && data.extras.result_codes && data.extras.result_codes.transaction) {

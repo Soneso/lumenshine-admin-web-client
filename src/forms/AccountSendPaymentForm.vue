@@ -205,11 +205,26 @@ export default {
       return ['MEMO_TEXT', 'MEMO_ID', 'MEMO_HASH', 'MEMO_RETURN'].map(m => ({ text: m, value: m }));
     },
 
-    homeDomainErrors () {
+    memoTextErrors () {
       const errors = [];
-      if (!this.$v.homeDomain.$dirty) return errors;
-      !this.$v.homeDomain.validDomain && errors.push('Home domain should be a valid domain name.');
-      !this.$v.homeDomain.hasNewValue && errors.push('Nothing changed.');
+      if (!this.$v.memoText.$dirty) return errors;
+      !this.$v.memoText.maxLength && errors.push('Maximum length is 28 characters.');
+      !this.$v.memoText.validLength && errors.push('Length should be exactly 64 characters.');
+      return errors;
+    },
+
+    amountErrors () {
+      const errors = [];
+      if (!this.$v.amount.$dirty) return errors;
+      !this.$v.amount.required && errors.push('Amount is required.');
+      !this.$v.amount.numeric && errors.push('Amount should be numeric.');
+    },
+
+    publicKeyErrors () {
+      const errors = [];
+      if (!this.$v.publicKey.$dirty) return errors;
+      !this.$v.publicKey.required && errors.push('Public key is required.');
+      !this.$v.publicKey.validPublicKey && errors.push('Public key seed should be valid.');
       return errors;
     },
 
@@ -231,10 +246,6 @@ export default {
     },
   },
   watch: {
-    data (val) {
-      this.homeDomain = this.data.home_domain || '';
-    },
-
     loading (val) {
       if (!val && this.sendPending) {
         this.sendPending = false;

@@ -1,6 +1,6 @@
 <template>
   <form>
-    <strong>Thresholds:</strong> <a @click="onEditClick">Edit</a>
+    <strong>Thresholds:</strong> <a href="#" @click.prevent="onEditClick">Edit</a>
     <br>
     low threshold: {{ thresholdLow }}<br>
     medium threshold: {{ thresholdMed }}<br>
@@ -74,6 +74,11 @@
               </td>
             </tr>
           </table>
+          <v-checkbox
+            v-model="confirmRisks"
+            :error-messages="confirmRisksErrors"
+            label="I confirm that I understand the meaning of the thresholds and the risks of changing them"
+          />
         </v-card-text>
         <v-card-actions>
           <div v-if="errors.length > 0">
@@ -90,7 +95,7 @@
 
 <script>
 import { validationMixin } from 'vuelidate';
-import { required, between, integer } from 'vuelidate/lib/validators';
+import { required, between, integer, sameAs } from 'vuelidate/lib/validators';
 
 import { secretSeed as validSecretSeed } from '@/util/validators';
 
@@ -121,6 +126,8 @@ export default {
       thresholdLow: { required, integer, between: between(0, 255) },
       thresholdMed: { required, integer, between: between(0, 255) },
       thresholdHigh: { required, integer, between: between(0, 255) },
+
+      confirmRisks: { required, confirmed: sameAs(() => true) }
     };
 
     return base;
@@ -130,6 +137,8 @@ export default {
       thresholdLow: this.data.thresholds.low_threshold,
       thresholdMed: this.data.thresholds.med_threshold,
       thresholdHigh: this.data.thresholds.high_threshold,
+
+      confirmRisks: false,
 
       secret: '',
       signer: this.data && this.data.signers ? this.data.signers[0].public_key : null,
@@ -150,7 +159,7 @@ export default {
     signerItems () {
       if (!this.data || !this.data.signers) return [];
       const acc = this.data;
-      return acc.signers.filter(signer => signer.weight >= this.data.thresholds.med_threshold).map(signer => ({
+      return acc.signers.filter(signer => signer.weight >= this.data.thresholds.high_threshold).map(signer => ({
         text: `${signer.public_key.slice(0, 16)}... weight ${signer.weight}`,
         value: signer.public_key,
       }));
@@ -164,6 +173,7 @@ export default {
       !this.$v.thresholdLow.between && errors.push('Low threshold should be a number between 0 and 255.');
       return errors;
     },
+
     thresholdMedErrors () {
       const errors = [];
       if (!this.$v.thresholdMed.$dirty) return errors;
@@ -172,6 +182,7 @@ export default {
       !this.$v.thresholdMed.between && errors.push('Med threshold should be a number between 0 and 255.');
       return errors;
     },
+
     thresholdHighErrors () {
       const errors = [];
       if (!this.$v.thresholdHigh.$dirty) return errors;
@@ -180,6 +191,14 @@ export default {
       !this.$v.thresholdHigh.between && errors.push('High threshold should be a number between 0 and 255.');
       return errors;
     },
+
+    confirmRisksErrors () {
+      const errors = [];
+      if (!this.$v.confirmRisks.$dirty) return errors;
+      !this.$v.confirmRisks.required && errors.push('Confirmation is required.');
+      !this.$v.confirmRisks.confirmed && errors.push('Confirmation is required.');
+      return errors;
+    }
 
   },
   watch: {
@@ -215,6 +234,7 @@ export default {
         return;
       }
 
+      this.changePending = true;
       this.$emit('setStellarData', {
         thresholdLow: this.thresholdLow,
         thresholdMed: this.thresholdMed,
@@ -223,7 +243,6 @@ export default {
         secret: this.secret,
         publicKey: this.signer,
       });
-      this.changePending = true;
     },
 
     onCancel () {

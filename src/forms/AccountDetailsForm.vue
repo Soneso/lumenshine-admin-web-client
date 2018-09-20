@@ -63,7 +63,13 @@
           </tr>
         </table>
         <span v-else>Account not funded</span>
-        <account-send-payment-form v-if="selectedBalance" :data="data" :balance="selectedBalance" @sendPayment="params => $emit('sendPayment', params)"/>
+        <account-send-payment-form
+          v-if="selectedBalance"
+          :loading="loading"
+          :data="data"
+          :balance="selectedBalance"
+          @sendPayment="params => $emit('sendPayment', params)"
+        />
       </div>
 
     </form>
@@ -85,6 +91,10 @@ export default {
     data: {
       type: Object,
       default: () => ({})
+    },
+    loading: {
+      type: Boolean,
+      required: true,
     },
     errors: {
       type: Array,

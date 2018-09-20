@@ -69,8 +69,10 @@ const Urls = {
     RemoveAssetCode: app('stellar_account/remove_asset_code'),
     AddAllowTrustSigner: app('stellar_account/add_allowtrust_signer'),
     RemoveAllowTrustSigner: app('stellar_account/remove_allowtrust_signer'),
+    EditAllowTrustSigner: app('stellar_account/edit_allowtrust_signer'),
     AddOtherSigner: app('stellar_account/add_other_signer'),
     RemoveOtherSigner: app('stellar_account/remove_other_signer'),
+    EditOtherSigner: app('stellar_account/edit_other_signer'),
     SearchTrustingAccounts: app('stellar_account/search_trusting_accounts'),
   },
 

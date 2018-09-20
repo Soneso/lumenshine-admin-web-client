@@ -13,6 +13,7 @@
       <div v-if="accountData" row justify-space-between>
         <account-details-form
           :data="accountData"
+          :loading="loadingDetails || loadingStellar"
           @setName="setName"
           @setDescription="setDescription"
           @sendPayment="sendPayment"/>
@@ -69,13 +70,17 @@
       <div v-if="accountData" row justify-space-between>
         <account-thresholds-form
           :data="accountData"
+          :loading="loadingStellar"
+          :errors="stellarErrorMessages"
           @setStellarData="setStellarData"/>
-        <account-signers-form
+        <br>
+        <account-signer-list
           :data="accountData"
-          @addAllowTrustSigner="data => addSigner(data, 'allowtrust')"
-          @deleteAllowTrustSigner="data => deleteSigner(data, 'allowtrust')"
-          @addOtherSigner="data => addSigner(data, 'other')"
-          @deleteOtherSigner="data => deleteSigner(data, 'other')"/>
+          :errors="stellarErrorMessages"
+          :loading="loadingSigners"
+          @addSigner="addSigner"
+          @updateSigner="updateSigner"
+          @removeSigner="deleteSigner"/>
       </div>
     </v-container>
 
@@ -126,12 +131,12 @@ import { mapActions, mapGetters } from 'vuex';
 
 import AccountAssetsForm from '@/forms/AccountAssetsForm';
 import AccountDetailsForm from '@/forms/AccountDetailsForm';
-import AccountSignersForm from '@/forms/AccountSignersForm';
 import AccountStellarForm from '@/forms/AccountStellarForm';
 import AccountThresholdsForm from '@/forms/AccountThresholdsForm';
 import AccountTrustForm from '@/forms/AccountTrustForm';
 import AccountHomeDomainForm from '@/forms/AccountHomeDomainForm';
 
+import AccountSignerList from '@/pages/accounts/AccountSignerList';
 import AccountTrustlineList from '@/pages/accounts/AccountTrustlineList';
 
 import StellarErrorHandler from '@/util/StellarErrorHelper';
@@ -141,7 +146,7 @@ StellarSdk.Network.useTestNetwork();
 
 export default {
   name: 'EditAccount',
-  components: { AccountStellarForm, AccountAssetsForm, AccountDetailsForm, AccountSignersForm, AccountThresholdsForm, AccountTrustForm, AccountHomeDomainForm, AccountTrustlineList },
+  components: { AccountStellarForm, AccountAssetsForm, AccountDetailsForm, AccountThresholdsForm, AccountTrustForm, AccountHomeDomainForm, AccountTrustlineList, AccountSignerList },
   data () {
     return {
       loadingDetails: false,
@@ -229,9 +234,6 @@ export default {
         const sourceKeypair = StellarSdk.Keypair.fromSecret(data.secret);
         const sourcePublicKey = sourceKeypair.publicKey();
 
-        console.log('sourcePublicKey', sourcePublicKey);
-        console.log('data.publicKey', data.publicKey);
-
         if (sourcePublicKey !== data.publicKey) {
           this.loadingStellar = false;
           this.stellarErrorMessages = [{ error_code: 'NOT_MATCHING_SECRET', error_message: 'Secret seed not matching with public key.' }];
@@ -290,8 +292,66 @@ export default {
         await this.getAccountDetails(this.accountData.public_key);
       } catch (err) {
         this.stellarErrorMessages = StellarErrorHandler(err);
+        console.error('stellar error', this.stellarErrorMessages);
       }
       this.loadingStellar = false;
+    },
+
+    async updateSigner (data) {
+      this.loadingSigners = true;
+      const updateStellar = !!data.secret;
+      if (updateStellar) {
+        try {
+          const sourceKeypair = StellarSdk.Keypair.fromSecret(data.secret);
+          const sourcePublicKey = sourceKeypair.publicKey();
+
+          if (sourcePublicKey !== data.publicKey) {
+            this.loadingStellar = false;
+            this.stellarErrorMessages = [{ error_code: 'NOT_MATCHING_SECRET', error_message: 'Secret seed not matching with public key.' }];
+            return;
+          } else if (!this.accountData.signers.find(signer => signer.public_key === sourcePublicKey)) {
+            this.loadingStellar = false;
+            this.stellarErrorMessages = [{ error_code: 'INVALID_SECRET', error_message: 'Invalid secret seed.' }];
+            return;
+          }
+
+          const account = await StellarAPI.loadAccount(data.publicKey);
+
+          const options = {
+            ...(data.signerPublicKey === data.publicKey ? {
+              masterWeight: data.weight,
+            } : {
+              signer: {
+                ed25519PublicKey: data.signerPublicKey,
+                weight: data.weight,
+              }
+            }),
+          };
+
+          const transaction = new StellarSdk.TransactionBuilder(account)
+            .addOperation(StellarSdk.Operation.setOptions(options))
+            .build();
+
+          transaction.sign(sourceKeypair);
+
+          await StellarAPI.submitTransaction(transaction);
+        } catch (err) {
+          this.signersErrorMessages = StellarErrorHandler(err);
+        }
+      }
+      if (data.name !== undefined || data.description !== undefined) {
+        await this.$http({
+          url: data.type === 'allow_trust' ? ApiUrls.Accounts.EditAllowTrustSigner : ApiUrls.Accounts.EditOtherSigner,
+          method: 'POST',
+          data: {
+            name: data.name,
+            description: data.description,
+            public_key: data.signerPublicKey,
+          }
+        });
+      }
+      await this.getAccountDetails(this.accountData.public_key);
+      this.loadingSigners = false;
     },
 
     async addAssetCode (data) {
@@ -339,15 +399,27 @@ export default {
     async addSigner (data, type) {
       this.loadingSigners = true;
       this.signersErrorMessages = [];
+
       try {
-        const sourceKeypair = StellarSdk.Keypair.fromSecret(data.issuingSecret);
+        const sourceKeypair = StellarSdk.Keypair.fromSecret(data.secret);
+        const sourcePublicKey = sourceKeypair.publicKey();
+
+        if (sourcePublicKey !== data.publicKey) {
+          this.loadingStellar = false;
+          this.stellarErrorMessages = [{ error_code: 'NOT_MATCHING_SECRET', error_message: 'Secret seed not matching with public key.' }];
+          return;
+        } else if (!this.accountData.signers.find(signer => signer.public_key === sourcePublicKey)) {
+          this.loadingStellar = false;
+          this.stellarErrorMessages = [{ error_code: 'INVALID_SECRET', error_message: 'Invalid secret seed.' }];
+          return;
+        }
 
         const account = await StellarAPI.loadAccount(data.publicKey);
 
         const transaction = new StellarSdk.TransactionBuilder(account)
           .addOperation(StellarSdk.Operation.setOptions({
             signer: {
-              ed25519PublicKey: data.publicKey,
+              ed25519PublicKey: data.signerPublicKey,
               weight: data.weight,
             }
           }))
@@ -357,13 +429,13 @@ export default {
 
         await StellarAPI.submitTransaction(transaction);
         await this.$http({
-          url: type === 'allowtrust' ? ApiUrls.Accounts.AddAllowTrustSigner : ApiUrls.Accounts.AddOtherSigner,
+          url: type === 'allow_trust' ? ApiUrls.Accounts.AddAllowTrustSigner : ApiUrls.Accounts.AddOtherSigner,
           method: 'POST',
           data: {
             account_public_key: this.accountData.public_key,
             signer_name: data.name,
             signer_description: data.description,
-            signer_public_key: data.publicKey,
+            signer_public_key: data.signerPublicKey,
             signer_secret_seed: data.secret,
           }
         });
@@ -374,12 +446,22 @@ export default {
       this.loadingSigners = false;
     },
 
-    async deleteSigner (data, type) {
+    async deleteSigner (data) {
       this.loadingSigners = true;
       this.signersErrorMessages = [];
       try {
-        const sourceKeypair = StellarSdk.Keypair.fromSecret(data.issuingSecret);
+        const sourceKeypair = StellarSdk.Keypair.fromSecret(data.secret);
         const sourcePublicKey = sourceKeypair.publicKey();
+
+        if (sourcePublicKey !== data.publicKey) {
+          this.loadingStellar = false;
+          this.stellarErrorMessages = [{ error_code: 'NOT_MATCHING_SECRET', error_message: 'Secret seed not matching with public key.' }];
+          return;
+        } else if (!this.accountData.signers.find(signer => signer.public_key === sourcePublicKey)) {
+          this.loadingStellar = false;
+          this.stellarErrorMessages = [{ error_code: 'INVALID_SECRET', error_message: 'Invalid secret seed.' }];
+          return;
+        }
 
         const account = await StellarAPI.loadAccount(sourcePublicKey);
 
@@ -396,7 +478,7 @@ export default {
 
         await StellarAPI.submitTransaction(transaction);
         await this.$http({
-          url: type === 'allowtrust' ? ApiUrls.Accounts.RemoveAllowTrustSigner : ApiUrls.Accounts.RemoveOtherSigner,
+          url: data.type === 'allow_trust' ? ApiUrls.Accounts.RemoveAllowTrustSigner : ApiUrls.Accounts.RemoveOtherSigner,
           method: 'POST',
           data: {
             account_public_key: this.accountData.public_key,
@@ -438,6 +520,8 @@ export default {
     },
 
     sendPayment (data) {
+      this.loadingStellar = true;
+
       const sourceKeypair = StellarSdk.Keypair.fromSecret(data.secret);
       const sourcePublicKey = sourceKeypair.publicKey();
 
@@ -484,6 +568,8 @@ export default {
           transaction.sign(sourceKeypair);
 
           return StellarAPI.submitTransaction(transaction);
+        }).then(() => {
+          this.loadingStellar = true;
         });
     }
   }
