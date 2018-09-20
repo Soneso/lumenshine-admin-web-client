@@ -18,7 +18,7 @@
 <script>
 import { mapActions } from 'vuex';
 
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 
 import KnownCurrencyForm from '@/forms/KnownCurrencyForm';
 
@@ -37,7 +37,7 @@ export default {
     this.loading = true;
     try {
       const res = await this.$http({
-        url: `${Urls.KnownCurrencies.GetCurrency}/${this.$route.params.id}`,
+        url: `${ApiUrls.KnownCurrencies.GetCurrency}/${this.$route.params.id}`,
         method: 'GET'
       });
       this.knownCurrencyData = res.data;
@@ -58,7 +58,7 @@ export default {
       this.errorMessages = [];
       try {
         await this.$http({
-          url: Urls.KnownCurrencies.EditCurrency,
+          url: ApiUrls.KnownCurrencies.EditCurrency,
           method: 'POST',
           data: {
             id: parseInt(this.$route.params.id, 10),
@@ -83,7 +83,7 @@ export default {
         this.errorMessages = [];
         try {
           await this.$http({
-            url: Urls.KnownCurrencies.DeleteCurrency,
+            url: ApiUrls.KnownCurrencies.DeleteCurrency,
             method: 'POST',
             data: {
               id: parseInt(this.$route.params.id, 10),

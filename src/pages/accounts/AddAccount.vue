@@ -37,7 +37,7 @@ import StellarSdk from 'stellar-sdk';
 
 import { mapActions, mapGetters } from 'vuex';
 
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 import AccountAddForm from '@/forms/AccountAddForm';
 import AccountConfirmForm from '@/forms/AccountConfirmForm';
 
@@ -109,7 +109,7 @@ export default {
           // await this.demoTransfer(this.formData.issuerAssetCode, 'SDBOD6TOCM4ZWAB64EKTCIYENETLIHL5M4DNJP5VLTM3SYL5CRUBKGVB', this.keyPair.publicKey);
         }
         await this.$http({
-          url: Urls.Accounts.AddAccount,
+          url: ApiUrls.Accounts.AddAccount,
           method: 'POST',
           data: {
             name: this.formData.name,
@@ -200,25 +200,6 @@ export default {
           return StellarAPI.submitTransaction(transaction);
         });
     },
-    // async demoTransfer (assetCode, issuerSecret, worker) {
-    //   const sourceKeypair = StellarSdk.Keypair.fromSecret(issuerSecret);
-    //   const sourcePublicKey = sourceKeypair.publicKey();
-
-    //   return StellarAPI.loadAccount(sourcePublicKey)
-    //     .then(account => {
-    //       const transaction = new StellarSdk.TransactionBuilder(account)
-    //         .addOperation(StellarSdk.Operation.payment({
-    //           destination: worker,
-    //           asset: new StellarSdk.Asset(assetCode, sourcePublicKey),
-    //           amount: '10'
-    //         }))
-    //         .build();
-
-    //       transaction.sign(sourceKeypair);
-
-    //       return StellarAPI.submitTransaction(transaction);
-    //     });
-    // }
   }
 };
 </script>

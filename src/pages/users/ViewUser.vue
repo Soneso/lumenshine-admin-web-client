@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 
 import UserForm from '@/forms/UserForm';
 
@@ -29,7 +29,7 @@ export default {
     this.loading = true;
     try {
       const res = await this.$http({
-        url: `${Urls.Users.GetUser}/${this.$route.params.id}`,
+        url: `${ApiUrls.Users.GetUser}/${this.$route.params.id}`,
         method: 'GET'
       });
       this.userData = res.data;

@@ -58,9 +58,12 @@
       <div>
         <strong>Balances:</strong>
         <table v-if="formattedBalances">
-          <tr v-for="balance in formattedBalances" :key="balance"><td>{{ balance }}</td></tr>
+          <tr v-for="balance in formattedBalances" :key="balance.text">
+            <td>{{ balance.text }} &nbsp;&nbsp;&nbsp;&nbsp;<a href="#" @click.prevent="selectedBalance = balance">Send</a></td>
+          </tr>
         </table>
         <span v-else>Account not funded</span>
+        <account-send-payment-form v-if="selectedBalance" :data="data" :balance="selectedBalance" @sendPayment="params => $emit('sendPayment', params)"/>
       </div>
 
     </form>
@@ -72,10 +75,11 @@ import { validationMixin } from 'vuelidate';
 import { required, maxLength } from 'vuelidate/lib/validators';
 
 import EditorWidget from '@/components/EditorWidget';
+import AccountSendPaymentForm from '@/forms/AccountSendPaymentForm';
 
 export default {
   name: 'AccountDetailsForm',
-  components: { EditorWidget },
+  components: { EditorWidget, AccountSendPaymentForm },
   mixins: [validationMixin],
   props: {
     data: {
@@ -103,6 +107,7 @@ export default {
       description: this.data.description || '',
 
       copiedAccount: null,
+      selectedBalance: null,
     };
   },
   computed: {
@@ -121,11 +126,15 @@ export default {
     },
     formattedBalances () {
       if (!this.data.balances) return null;
-      const xlmBalance = `${this.data.balances.find(b => b.asset_type === 'native').balance} XLM`;
+
+      const xlmBalance = this.data.balances.find(b => b.asset_type === 'native');
+      xlmBalance.text = `${xlmBalance.balance} XLM`;
 
       const otherBalances = this.data.balances.filter(b => b.asset_type !== 'native');
-      otherBalances.map(bal => `${bal.balance} ${bal.asset_code}`);
-      return [xlmBalance, ...otherBalances.map(bal => `${bal.balance} ${bal.asset_code}`)];
+      otherBalances.forEach(bal => {
+        bal.text = `${bal.balance} ${bal.asset_code}`;
+      });
+      return [xlmBalance, ...otherBalances];
     },
   },
   methods: {
@@ -136,6 +145,7 @@ export default {
       }
       this.$emit('setName', { name: this.name, publicKey: this.data.public_key });
     },
+
     setDescription () {
       this.$v.$touch();
       if (this.$v.$invalid) {
@@ -143,11 +153,13 @@ export default {
       }
       this.$emit('setDescription', { description: this.description, publicKey: this.data.public_key });
     },
+
     onCancel () {
       this.name = this.data.name || '';
       this.description = this.data.description || '';
       this.$v.$reset();
     },
+
     onCopy (account) {
       this.copiedAccount = account;
     },

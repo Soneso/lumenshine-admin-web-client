@@ -16,7 +16,7 @@
 <script>
 import { mapActions } from 'vuex';
 
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 
 import UserForm from '@/forms/UserForm';
 
@@ -35,7 +35,7 @@ export default {
     this.loading = true;
     try {
       const res = await this.$http({
-        url: `${Urls.Users.GetUser}/${this.$route.params.id}`,
+        url: `${ApiUrls.Users.GetUser}/${this.$route.params.id}`,
         method: 'GET'
       });
       this.userData = res.data;
@@ -51,7 +51,7 @@ export default {
       this.errorMessages = [];
       try {
         await this.$http({
-          url: Urls.Users.EditUser,
+          url: ApiUrls.Users.EditUser,
           method: 'POST',
           data: {
             id: parseInt(this.$route.params.id, 10),
@@ -66,7 +66,7 @@ export default {
         this.userData.groups.sort();
         if (data.groups.length !== this.userData.groups.length || !data.groups.sort().every((v, i) => v === this.userData.groups[i])) {
           await this.$http({
-            url: Urls.Users.SetGroups,
+            url: ApiUrls.Users.SetGroups,
             method: 'POST',
             data: {
               id: parseInt(this.$route.params.id, 10),

@@ -18,7 +18,7 @@
 <script>
 import { mapActions } from 'vuex';
 
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 
 import KnownInflationDestinationForm from '@/forms/KnownInflationDestinationForm';
 
@@ -37,7 +37,7 @@ export default {
     this.loading = true;
     try {
       const res = await this.$http({
-        url: `${Urls.KnownInflationDestinations.GetInflationDestination}/${this.$route.params.id}`,
+        url: `${ApiUrls.KnownInflationDestinations.GetInflationDestination}/${this.$route.params.id}`,
         method: 'GET'
       });
       this.knownInflationDestinationData = res.data;
@@ -57,7 +57,7 @@ export default {
       this.errorMessages = [];
       try {
         await this.$http({
-          url: Urls.KnownCurrencies.EditInflationDestination,
+          url: ApiUrls.KnownCurrencies.EditInflationDestination,
           method: 'POST',
           data: {
             id: parseInt(this.$route.params.id, 10),
@@ -81,7 +81,7 @@ export default {
         this.errorMessages = [];
         try {
           await this.$http({
-            url: Urls.KnownInflationDestinations.DeleteInflationDestination,
+            url: ApiUrls.KnownInflationDestinations.DeleteInflationDestination,
             method: 'POST',
             data: {
               id: parseInt(this.$route.params.id, 10),

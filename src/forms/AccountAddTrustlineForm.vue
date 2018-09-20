@@ -1,42 +1,47 @@
 <template>
   <form>
-    <strong>Home domain</strong> <a @click="onSetClick">Set</a>
-    <br>
-    <span :class="{'warning-text': !data.home_domain}">{{ data.home_domain || '(not set)' }}</span>
-
-    <v-dialog v-model="showSetDialog" max-width="50%" @keydown.esc="showSetDialog = false">
+    <v-dialog v-model="showDialog" max-width="50%" @keydown.esc="showDialog = false">
       <v-toolbar color="primary" dark dense>
-        <v-toolbar-title class="white--text">Set Home Domain</v-toolbar-title>
+        <v-toolbar-title class="white--text">Add trustline</v-toolbar-title>
       </v-toolbar>
       <v-card tile>
         <v-card-text>
           <v-progress-linear v-if="loading" :indeterminate="true"/>
           <table>
             <tr>
+              <td><strong>Issuer account</strong></td>
+              <td>
+                <v-select
+                  :items="issuerAccountItems"
+                  v-model="issuer"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Issuer public key</strong></td>
+              <td>{{ issuer }}</td>
+            </tr>
+            <tr>
+              <td><strong>Asset code</strong></td>
+              <td>
+                <v-select
+                  :items="assetCodeItems"
+                  v-model="assetCode"
+                />
+              </td>
+            </tr>
+            <tr/>
+            <tr>
               <td><strong>Account public key</strong></td>
-              <td>{{ data.public_key }}</td>
+              <td>
+                {{ data.public_key }}
+              </td>
             </tr>
             <tr>
               <td><strong>Account thresholds</strong></td>
               <td>low threshold: {{ data.thresholds.low_threshold }}, medium threshold: {{ data.thresholds.med_threshold }}, high threshold: {{ data.thresholds.high_threshold }}</td>
             </tr>
-            <tr>
-              <td><strong>Current home domain</strong></td>
-              <td>{{ data.home_domain || 'not set' }}</td>
-            </tr>
-            <tr>
-              <td><strong>New home domain</strong></td>
-              <td>
-                <v-text-field
-                  v-model="homeDomain"
-                  :error-messages="homeDomainErrors"
-                  required
-                  single-line
-                  @input="$v.homeDomain.$touch()"
-                  @blur="$v.homeDomain.$touch()"
-                />
-              </td>
-            </tr>
+            <tr/>
             <tr>
               <td><strong>Sign transaction with signer</strong></td>
               <td>
@@ -66,7 +71,7 @@
             <v-subheader v-for="error in errors" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
           </div>
           <v-spacer/>
-          <v-btn color="primary darken-1" flat="flat" @click.native="setStellarData">Submit</v-btn>
+          <v-btn color="primary darken-1" flat="flat" @click.native="sendPayment">Submit</v-btn>
           <v-btn color="primary darken-1" flat="flat" @click.native="reset">Cancel</v-btn>
         </v-card-actions>
       </v-card>
@@ -76,14 +81,14 @@
 
 <script>
 import { validationMixin } from 'vuelidate';
-import { required } from 'vuelidate/lib/validators';
+import { required, numeric, maxLength } from 'vuelidate/lib/validators';
 
-import { secretSeed as validSecretSeed, domain as validDomain } from '@/util/validators';
+import { secretSeed as validSecretSeed, publicKey as validPublicKey } from '@/util/validators';
 
 import EditorWidget from '@/components/EditorWidget';
 
 export default {
-  name: 'AccountHomeDomainForm',
+  name: 'AccountAddTrustlineForm',
   components: { EditorWidget },
   mixins: [validationMixin],
   props: {
@@ -98,11 +103,16 @@ export default {
     loading: {
       type: Boolean,
       required: true,
+    },
+    balance: {
+      type: Object,
+      default: () => ({})
     }
   },
   validations () {
     const base = {
-      homeDomain: { validDomain, hasNewValue: val => val !== this.data.home_domain },
+      publicKey: { required, validPublicKey },
+      amount: { required, numeric },
       secret: { required, validSecretSeed },
     };
 
@@ -110,16 +120,39 @@ export default {
   },
   data () {
     return {
-      homeDomain: this.data.home_domain || '',
       secret: '',
       signer: this.data && this.data.signers ? this.data.signers[0].public_key : null,
 
-      showSetDialog: false,
+      showDialog: true,
 
-      changePending: false,
+      sendPending: false,
+
+      copiedAccount: null,
     };
   },
   computed: {
+    assetCode () {
+      if (this.balance.asset_type === 'native') return 'XLM';
+      return this.balance.asset_code;
+    },
+
+    memoPlaceholder () {
+      switch (this.memoType) {
+        case 'MEMO_TEXT':
+          return 'Up to 28 characters';
+        case 'MEMO_ID':
+          return 'Enter memo ID number';
+        case 'MEMO_HASH':
+        case 'MEMO_RETURN':
+          return 'Enter 64 characters encoded string';
+      }
+      return '';
+    },
+
+    memoItems () {
+      return ['MEMO_TEXT', 'MEMO_ID', 'MEMO_HASH', 'MEMO_RETURN'].map(m => ({ text: m, value: m }));
+    },
+
     homeDomainErrors () {
       const errors = [];
       if (!this.$v.homeDomain.$dirty) return errors;
@@ -151,8 +184,8 @@ export default {
     },
 
     loading (val) {
-      if (!val && this.changePending) {
-        this.changePending = false;
+      if (!val && this.sendPending) {
+        this.sendPending = false;
         if (this.errors.length === 0) {
           this.reset();
         }
@@ -163,21 +196,24 @@ export default {
     reset () {
       this.homeDomain = this.data.home_domain || '';
       this.secret = '';
-      this.showSetDialog = false;
+      this.showDialog = false;
       this.$v.$reset();
     },
 
-    setStellarData () {
+    sendPayment () {
       this.$v.$touch();
       if (this.$v.$invalid) {
         return;
       }
-      this.$emit('setStellarData', {
-        homeDomain: this.homeDomain,
+      this.$emit('sendPayment', {
+        destPublicKey: this.publicKey,
+        amount: this.amount,
+        memoType: this.memoType,
+        memoText: this.memoText,
         secret: this.secret,
         publicKey: this.signer,
       });
-      this.changePending = true;
+      this.sendPending = true;
     },
 
     onCancel () {
@@ -186,9 +222,9 @@ export default {
 
     onSetClick () {
       if (this.signerItems.length === 0) {
-        this.$root.$info('Error', 'No signer is available for changing the home domain.', { color: 'red' });
+        this.$root.$info('Error', 'No signer is available for sending payments.', { color: 'red' });
       } else {
-        this.showSetDialog = true;
+        this.showDialog = true;
       }
     }
   }

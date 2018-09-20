@@ -1,11 +1,11 @@
 import Vue from 'vue';
 
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 
 export default {
   async getKnownInflationDestinationsList () {
     const response = await Vue.http({
-      url: Urls.KnownInflationDestinations.AllInflationDestinations,
+      url: ApiUrls.KnownInflationDestinations.AllInflationDestinations,
       method: 'GET'
     });
 

@@ -1,11 +1,11 @@
 import Vue from 'vue';
 
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 
 export default {
   async getKnownCurrenciesList () {
     const response = await Vue.http({
-      url: Urls.KnownCurrencies.AllCurrencies,
+      url: ApiUrls.KnownCurrencies.AllCurrencies,
       method: 'GET'
     });
 

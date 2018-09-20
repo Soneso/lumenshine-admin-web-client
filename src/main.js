@@ -4,7 +4,7 @@ import Vue from 'vue';
 import store from '@/store/store';
 import router from '@/router';
 import App from '@/App';
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 import Vuelidate from 'vuelidate';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
@@ -35,11 +35,11 @@ Vue.use(require('@websanova/vue-auth'), {
   auth: require('@websanova/vue-auth/drivers/auth/bearer.js'),
   http: require('@websanova/vue-auth/drivers/http/axios.1.x.js'),
   router: require('@websanova/vue-auth/drivers/router/vue-router.2.x.js'),
-  fetchData: { url: Urls.Auth.UserData, method: 'GET', enabled: true },
+  fetchData: { url: ApiUrls.Auth.UserData, method: 'GET', enabled: true },
   authRedirect: { path: '/login' },
-  loginData: { url: Urls.Auth.Login, method: 'POST', redirect: '/', fetchUser: true },
+  loginData: { url: ApiUrls.Auth.Login, method: 'POST', redirect: '/', fetchUser: true },
   logoutData: { url: '/logout', method: 'POST', redirect: '/login', makeRequest: false },
-  refreshData: { url: Urls.Auth.Refresh, method: 'GET', enabled: true, interval: 60 },
+  refreshData: { url: ApiUrls.Auth.Refresh, method: 'GET', enabled: true, interval: 60 },
   rolesVar: 'groups'
 });
 

@@ -42,7 +42,7 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 
 export default {
   name: 'KnownCurrenciesList',
@@ -82,7 +82,7 @@ export default {
       this.errorMessages = [];
       try {
         await this.$http({
-          url: Urls.KnownCurrencies.ChangeCurrencyOrder,
+          url: ApiUrls.KnownCurrencies.ChangeCurrencyOrder,
           method: 'POST',
           data: {
             id: parseInt(id, 10),

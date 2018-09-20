@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 
 import { mapActions } from 'vuex';
 
@@ -37,7 +37,7 @@ export default {
       this.loading = true;
       try {
         await this.$http({
-          url: Urls.KnownCurrencies.AddCurrency,
+          url: ApiUrls.KnownCurrencies.AddCurrency,
           method: 'POST',
           data
         });

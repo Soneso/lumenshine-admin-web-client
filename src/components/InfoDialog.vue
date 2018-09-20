@@ -5,11 +5,6 @@
     </v-toolbar>
     <v-card tile>
       <v-card-text v-show="!!message">{{ message }}</v-card-text>
-      <v-card-actions>
-        <v-spacer/>
-        <v-btn color="primary darken-1" flat="flat" @click.native="agree()">{{ options.action || 'Yes' }}</v-btn>
-        <v-btn color="grey" flat="flat" @click.native="cancel()">{{ options.cancel || 'Cancel' }}</v-btn>
-      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
@@ -20,7 +15,6 @@ export default {
     return {
       dialog: false,
       resolve: null,
-      reject: null,
       message: null,
       title: null,
       options: {
@@ -37,7 +31,6 @@ export default {
       this.options = Object.assign(this.options, options);
       return new Promise((resolve, reject) => {
         this.resolve = resolve;
-        this.reject = reject;
       });
     },
     agree () {

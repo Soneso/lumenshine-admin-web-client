@@ -1,6 +1,7 @@
 <template>
   <v-app id="inspire">
     <confirm-dialog ref="confirm"/>
+    <info-dialog ref="info"/>
     <div v-if="$auth.ready()">
       <app-menu :drawer="drawer"/>
       <v-toolbar :clipped-left="$vuetify.breakpoint.lgAndUp" color="blue darken-3" dark app fixed>
@@ -33,11 +34,12 @@
 import { mapActions } from 'vuex';
 
 import ConfirmDialog from '@/components/ConfirmDialog';
+import InfoDialog from '@/components/InfoDialog';
 import AppMenu from '@/components/AppMenu';
 
 export default {
   name: 'Home',
-  components: { AppMenu, ConfirmDialog },
+  components: { AppMenu, ConfirmDialog, InfoDialog },
   props: {
     source: {
       type: String,
@@ -56,6 +58,7 @@ export default {
   },
   mounted () {
     this.$root.$confirm = this.$refs.confirm.open;
+    this.$root.$info = this.$refs.info.open;
   },
   methods: {
     ...mapActions(['resetState']),

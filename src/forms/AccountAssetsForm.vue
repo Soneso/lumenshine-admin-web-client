@@ -23,6 +23,15 @@
           @input="$v.newAssetCode.$touch()"
           @blur="$v.newAssetCode.$touch()"
         />
+        <table>
+          <tr v-for="asset_code in data.asset_codes" :key="asset_code">
+            <td>{{ asset_code }}</td>
+            <td>
+              <a href="#">Send</a>
+              <a href="#" class="warning-text" @click="onDelete(asset_code, data.public_key)">Remove</a>
+            </td>
+          </tr>
+        </table>
       </template>
     </editor-widget>
   </form>
@@ -85,7 +94,7 @@ export default {
     },
 
     onDelete (assetCode, publicKey) {
-      this.$root.$confirm('Delete', 'Are you sure you want to delete the asset?', { color: 'red' }).then(async confirm => {
+      this.$root.$confirm('Delete', 'Are you sure you want to delete the asset?', { color: 'red', action: 'Delete' }).then(async confirm => {
         if (confirm) {
           this.$emit('deleteAssetCode', { assetCode, publicKey });
         }

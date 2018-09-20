@@ -1,9 +1,19 @@
+import StellarSdk from 'stellar-sdk';
+
 export function publicKey (value) {
   return /^G[0-9A-Z]{55}$/.test(value);
 };
 
 export function secretSeed (value) {
-  return /^S[0-9A-Z]{55}$/.test(value);
+  if (!/^S[0-9A-Z]{55}$/.test(value)) {
+    return false;
+  }
+  try {
+    StellarSdk.Keypair.fromSecret(value);
+  } catch (err) {
+    return false;
+  }
+  return true;
 };
 
 export function assetCode (value) {

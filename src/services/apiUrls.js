@@ -41,6 +41,7 @@ class UrlReplacer {
 
 // import { Urls } from '@/router/urls'
 // all plain urls (except auth) must be prefixed with app, because thats the protected route in the server
+
 const Urls = {
   Auth: {
     Login: anon('login'),
@@ -70,6 +71,7 @@ const Urls = {
     RemoveAllowTrustSigner: app('stellar_account/remove_allowtrust_signer'),
     AddOtherSigner: app('stellar_account/add_other_signer'),
     RemoveOtherSigner: app('stellar_account/remove_other_signer'),
+    SearchTrustingAccounts: app('stellar_account/search_trusting_accounts'),
   },
 
   KnownCurrencies: {
@@ -95,4 +97,4 @@ const Urls = {
   }
 };
 
-export { Urls, UrlReplacer };
+export default Urls;

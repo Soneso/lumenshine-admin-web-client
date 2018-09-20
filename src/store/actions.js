@@ -61,15 +61,15 @@ export default {
   // loads / updates a single account (loads Stellar data too)
   async getAccountDetails ({ getters, commit }, publicKey) {
     try {
-      const list = [...(getters.accountList || {})];
-      const acc = list.find(acc => acc.public_key === publicKey) || {};
+      // const list = [...(getters.accountList || {})];
+      // const acc = list.find(acc => acc.public_key === publicKey) || {};
 
       const [ backendRes, stellarRes ] = await Promise.all([
         AccountService.getAccountDetails(publicKey),
         horizonServer.loadAccount(publicKey).catch(err => err)
       ]);
       commit('SET_ACCOUNT', {
-        ...acc,
+        // ...acc,
         ...backendRes,
         ...(!(stellarRes instanceof Error) ? stellarRes : {}),
         detailsLoaded: true

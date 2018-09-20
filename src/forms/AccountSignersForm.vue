@@ -1,5 +1,75 @@
 <template>
   <form v-if="pendingDelete === null">
+    <v-container justify-space-between>
+      <v-subheader class="headline">
+        Signers
+        <v-spacer/>
+        <v-btn @click="onAdd">add</v-btn>
+      </v-subheader>
+      <v-layout row>
+        <v-flex xs9 sm9>
+          <v-layout row>
+            <v-text-field
+              v-model="name"
+              append-icon="search"
+              label="Name"
+              hide-details
+              persistent-hint
+            />
+          </v-layout>
+          <v-layout row>
+            <v-text-field
+              v-model="signerPublicKey"
+              append-icon="search"
+              label="Public key"
+              hide-details
+              persistent-hint
+            />
+          </v-layout>
+          <v-layout row>
+            Type<br>
+            <v-checkbox
+              v-model="searchMaster"
+              label="master"
+            />
+            <v-checkbox
+              v-model="searchOther"
+              label="other"
+            />
+          </v-layout>
+          <br>
+        </v-flex>
+      </v-layout>
+    </v-container>
+    <table v-if="extendedSigners.length > 0" class="table">
+      <thead>
+        <th>Name / Public key</th>
+        <th>Type</th>
+        <th>Weight</th>
+        <th/>
+      </thead>
+      <tr v-for="signer in extendedSigners" :key="signer.public_key">
+        <td>
+          {{ signer.name }}<br>
+          {{ signer.public_key }}
+          <a
+            v-clipboard:copy="signer.public_key"
+            v-clipboard:success="() => onCopy(signer.public_key)"
+            class="wallet-link">
+            <v-icon>file_copy</v-icon>
+          </a>
+          <span v-if="signer.public_key === copiedAccount">Copied</span>
+        </td>
+        <td>{{ signer.type }}</td>
+        <td>{{ signer.weight }}</td>
+        <td>
+          <a href="#" @click="onOpenEditForm(signer.public_key)">Edit</a><br>
+          <a href="#" @click="onOpenChangeWeightForm(signer.public_key)">Change weight</a><br>
+          <a href="#" class="warning-text" @click="onOpenDeleteForm(signer.public_key)">Remove</a><br>
+          <a href="#" @click="onOpenDescription(signer.public_key)">Show description</a><br>
+        </td>
+      </tr>
+    </table>
     <editor-widget
       v-if="data.type === 'issuing'"
       :show-edit-form="editingSigner === 'allowtrust'"
@@ -10,35 +80,6 @@
       <template slot="header">
         <div><strong>Allow trust signers:</strong></div>
       </template>
-      <table v-if="extendedAllowTrustSigners.length > 0" class="table">
-        <thead>
-          <th>Name / Public key</th>
-          <th>Type</th>
-          <th>Weight</th>
-          <th>Actions</th>
-        </thead>
-        <tr v-for="signer in extendedAllowTrustSigners" :key="signer.public_key">
-          <td>
-            {{ signer.name }}<br>
-            {{ signer.public_key }}
-            <a
-              v-clipboard:copy="signer.public_key"
-              v-clipboard:success="() => onCopy(signer.public_key)"
-              class="wallet-link">
-              <v-icon>file_copy</v-icon>
-            </a>
-            <span v-if="signer.public_key === copiedAccount">Copied</span>
-          </td>
-          <td>allow trust</td>
-          <td>{{ signer.weight }}</td>
-          <td>
-            <a href="#" class="warning-text" @click="onOpenDeleteForm(signer.public_key, 'allowtrust')">Remove</a>
-          </td>
-        </tr>
-      </table>
-      <div v-if="extendedAllowTrustSigners.length > 0">
-        <br><hr><br>
-      </div>
       <template slot="editor">
         <v-text-field
           v-model="signerName"
@@ -87,91 +128,6 @@
           @blur="$v.secret.$touch()"
         />
         <br><hr><br>
-      </template>
-    </editor-widget>
-
-    <editor-widget
-      :show-edit-form="editingSigner === 'other'"
-      :has-error="$v.signerName.$invalid || $v.signerDescription.$invalid || $v.signerPublicKey.$invalid || $v.signerSecret.$invalid"
-      button-text="Add new other signer"
-      @cancel="onCancel"
-      @submit="addOtherSigner">
-      <template slot="header">
-        <div><strong>Other signers:</strong></div>
-      </template>
-      <table v-if="extendedOtherSigners.length > 0" class="table">
-        <thead>
-          <th>Name / Public key</th>
-          <th>Type</th>
-          <th>Weight</th>
-          <th>Actions</th>
-        </thead>
-        <tr v-for="signer in extendedOtherSigners" :key="signer.public_key">
-          <td>
-            {{ signer.name }}<br>
-            {{ signer.public_key }}
-            <a
-              v-clipboard:copy="signer.public_key"
-              v-clipboard:success="() => onCopy(signer.public_key)"
-              class="wallet-link">
-              <v-icon>file_copy</v-icon>
-            </a>
-            <span v-if="signer.public_key === copiedAccount">Copied</span>
-          </td>
-          <td>other</td>
-          <td>{{ signer.weight }}</td>
-          <td>
-            <a href="#" class="warning-text" @click="onOpenDeleteForm(signer.public_key, 'other')">Remove</a>
-          </td>
-        </tr>
-      </table>
-      <template slot="editor">
-        <v-text-field
-          v-model="signerName"
-          :error-messages="signerNameErrors"
-          label="Name"
-          required
-          @input="$v.signerName.$touch()"
-          @blur="$v.signerName.$touch()"
-        />
-        <v-text-field
-          v-model="signerDescription"
-          :error-messages="signerDescriptionErrors"
-          label="Description"
-          @input="$v.signerDescription.$touch()"
-          @blur="$v.signerDescription.$touch()"
-        />
-        <v-text-field
-          v-model="signerPublicKey"
-          :error-messages="signerPublicKeyErrors"
-          label="Signer public key"
-          required
-          @input="$v.signerPublicKey.$touch()"
-          @blur="$v.signerPublicKey.$touch()"
-        />
-        <v-text-field
-          v-model="signerSecret"
-          :error-messages="signerSecretErrors"
-          label="Signer secret seed"
-          @input="$v.signerSecret.$touch()"
-          @blur="$v.signerSecret.$touch()"
-        />
-        <v-text-field
-          v-model="signerWeight"
-          :error-messages="signerWeightErrors"
-          label="Signer key weight"
-          required
-          @input="$v.signerWeight.$touch()"
-          @blur="$v.signerWeight.$touch()"
-        />
-        <v-text-field
-          v-model="secret"
-          :error-messages="secretErrors"
-          label="Issuing account secret seed"
-          required
-          @input="$v.secret.$touch()"
-          @blur="$v.secret.$touch()"
-        />
       </template>
     </editor-widget>
   </form>
@@ -268,6 +224,9 @@ export default {
           weight: stellarSigner ? stellarSigner.weight : undefined
         };
       });
+    },
+    extendedSigners () {
+      return [...this.extendedAllowTrustSigners, ...this.extendedOtherSigners];
     },
     signerNameErrors () {
       const errors = [];

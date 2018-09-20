@@ -1,11 +1,11 @@
 import Vue from 'vue';
 
-import { Urls } from '@/router/urls';
+import ApiUrls from '@/services/apiUrls';
 
 export default {
   async getUserList () {
     const response = await Vue.http({
-      url: Urls.Users.AllUsers,
+      url: ApiUrls.Users.AllUsers,
       method: 'GET'
     });
     return response.data.users;
