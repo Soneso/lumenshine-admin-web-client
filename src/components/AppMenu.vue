@@ -111,12 +111,13 @@ export default {
   },
   methods: {
     recalculateMenuItems () {
+      const isAccountFunded = !this.currentAccount || this.currentAccount.signers !== undefined;
       const accountEditSubmenuItems = !this.currentAccount ? [] : [
         { text: 'Details', link: `/accounts/${this.currentAccount.public_key}/details` },
-        ...(this.currentAccount.type !== 'funding' ? [{ text: 'Trust', link: `/accounts/${this.currentAccount.public_key}/trust` }] : []),
-        { text: 'Multi-Sig', link: `/accounts/${this.currentAccount.public_key}/multisig` },
-        { text: 'Transactions', link: `/accounts/${this.currentAccount.public_key}/transactions` },
-        ...(this.currentAccount.type !== 'funding' ? [{ text: 'Stellar form (old one)', link: `/accounts/${this.currentAccount.public_key}/stellar` }] : []), // temporary
+        ...(isAccountFunded && this.currentAccount.type !== 'funding' ? [{ text: 'Trust', link: `/accounts/${this.currentAccount.public_key}/trust` }] : []),
+        ...(isAccountFunded && this.currentAccount.type !== 'funding' ? [{ text: 'Multi-Sig', link: `/accounts/${this.currentAccount.public_key}/multisig` }] : []),
+        ...(isAccountFunded ? [{ text: 'Transactions', link: `/accounts/${this.currentAccount.public_key}/transactions` }] : []),
+        // ...(isAccountFunded && this.currentAccount.type !== 'funding' ? [{ text: 'Stellar form (old one)', link: `/accounts/${this.currentAccount.public_key}/stellar` }] : []), // temporary
       ];
 
       const menu = [

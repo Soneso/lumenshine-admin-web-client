@@ -65,15 +65,21 @@ const Urls = {
     AddAccount: app('stellar_account/add'),
     RemoveAccount: app('stellar_account/remove'),
     EditAccount: app('stellar_account/edit'),
+
     AddAssetCode: app('stellar_account/add_asset_code'),
     RemoveAssetCode: app('stellar_account/remove_asset_code'),
+
     AddAllowTrustSigner: app('stellar_account/add_allowtrust_signer'),
     RemoveAllowTrustSigner: app('stellar_account/remove_allowtrust_signer'),
     EditAllowTrustSigner: app('stellar_account/edit_allowtrust_signer'),
     AddOtherSigner: app('stellar_account/add_other_signer'),
     RemoveOtherSigner: app('stellar_account/remove_other_signer'),
     EditOtherSigner: app('stellar_account/edit_other_signer'),
+
     SearchTrustingAccounts: app('stellar_account/search_trusting_accounts'),
+    SearchWorkerAccountTrustlines: app('stellar_account/worker_account_trustlines'),
+    AddUnauthorizedTrustline: app('stellar_account/add_unauthorized_trustline'),
+    RemoveUnauthorizedTrustline: app('stellar_account/remove_unauthorized_trustline'),
   },
 
   KnownCurrencies: {

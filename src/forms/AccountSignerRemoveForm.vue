@@ -140,8 +140,9 @@ export default {
   methods: {
     reset () {
       this.secret = '';
-      this.showDialog = false;
+      this.showDialog = true;
       this.$v.$reset();
+      this.$emit('reset');
     },
 
     removeSigner () {

@@ -114,8 +114,9 @@ export default {
     reset () {
       this.name = this.signer.name;
       this.description = this.signer.description;
-      this.showDialog = false;
+      this.showDialog = true;
       this.$v.$reset();
+      this.$emit('reset');
     },
 
     updateSigner () {

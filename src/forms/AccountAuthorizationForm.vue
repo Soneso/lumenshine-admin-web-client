@@ -72,6 +72,11 @@
               </td>
             </tr>
           </table>
+          <v-checkbox
+            v-model="confirmRisks"
+            :error-messages="confirmRisksErrors"
+            label="I confirm that I understand the meaning of the authorization flags and the risks of changing them"
+          />
         </v-card-text>
         <v-card-actions>
           <div v-if="errors.length > 0">
@@ -88,14 +93,14 @@
 
 <script>
 import { validationMixin } from 'vuelidate';
-import { required } from 'vuelidate/lib/validators';
+import { required, sameAs } from 'vuelidate/lib/validators';
 
 import { secretSeed as validSecretSeed } from '@/util/validators';
 
 import EditorWidget from '@/components/EditorWidget';
 
 export default {
-  name: 'AccountHomeDomainForm',
+  name: 'AccountAuthorizationForm',
   components: { EditorWidget },
   mixins: [validationMixin],
   props: {
@@ -115,6 +120,7 @@ export default {
   validations () {
     const base = {
       secret: { required, validSecretSeed },
+      confirmRisks: { required, confirmed: sameAs(() => true) }
     };
 
     return base;
@@ -124,6 +130,8 @@ export default {
       authRequired: this.data.flags.auth_required,
       authRevocable: this.data.flags.auth_revocable,
       authImmutable: this.data.flags.auth_immutable,
+
+      confirmRisks: false,
 
       secret: '',
       signer: this.data && this.data.signers ? this.data.signers[0].public_key : null,
@@ -138,6 +146,14 @@ export default {
       if (!this.$v.secret.$dirty) return errors;
       !this.$v.secret.required && errors.push('Secret is required.');
       !this.$v.secret.validSecretSeed && errors.push('Secret seed should be valid.');
+      return errors;
+    },
+
+    confirmRisksErrors () {
+      const errors = [];
+      if (!this.$v.confirmRisks.$dirty) return errors;
+      !this.$v.confirmRisks.required && errors.push('Confirmation is required.');
+      !this.$v.confirmRisks.confirmed && errors.push('Confirmation is required.');
       return errors;
     },
 
@@ -175,6 +191,7 @@ export default {
       this.secret = '';
       this.showSetDialog = false;
       this.$v.$reset();
+      this.$emit('reset');
     },
 
     setStellarData () {

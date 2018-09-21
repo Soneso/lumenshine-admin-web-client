@@ -51,20 +51,57 @@
             <tr>
               <td><strong>New Signer public key</strong></td>
               <td>
+                <v-layout row>
+                  {{ hasGenerated ? signerPublicKey : null }}
+                  <v-text-field
+                    v-if="!hasGenerated"
+                    v-model="signerPublicKey"
+                    :error-messages="signerPublicKeyErrors"
+                    required
+                    single-line
+                    @input="$v.signerPublicKey.$touch()"
+                    @blur="$v.signerPublicKey.$touch()"
+                  />
+                  <a
+                    v-clipboard:copy="signerPublicKey"
+                    v-clipboard:success="() => clipboard = signerPublicKey"
+                    v-if="hasGenerated"
+                    class="wallet-link">
+                    <v-icon>file_copy</v-icon>
+                  </a>
+                  <span v-if="hasGenerated && signerPublicKey === clipboard">Copied</span>
+                  <v-btn @click="toggleNewPublicKey">{{ hasGenerated ? 'Remove' : 'Generate new' }}</v-btn>
+                </v-layout>
+              </td>
+            </tr>
+            <tr v-if="hasGenerated || selectedType === 'allow_trust'">
+              <td><strong>New Signer seed</strong></td>
+              <td>
+                {{ hasGenerated ? signerSeed : null }}
                 <v-text-field
-                  v-model="signerPublicKey"
-                  :error-messages="signerPublicKeyErrors"
+                  v-if="!hasGenerated"
+                  v-model="signerSeed"
+                  :error-messages="signerSeedErrors"
                   required
                   single-line
-                  @input="$v.signerPublicKey.$touch()"
-                  @blur="$v.signerPublicKey.$touch()"
+                  @input="$v.signerSeed.$touch()"
+                  @blur="$v.signerSeed.$touch()"
                 />
+                <a
+                  v-clipboard:copy="signerSeed"
+                  v-clipboard:success="() => clipboard = signerSeed"
+                  v-if="hasGenerated"
+                  class="wallet-link">
+                  <v-icon>file_copy</v-icon>
+                </a>
+                <span v-if="hasGenerated && signerSeed === clipboard">Copied</span>
               </td>
             </tr>
             <tr>
               <td><strong>New Signer weight</strong></td>
               <td>
                 <v-text-field
+                  v-if="selectedType === 'other'"
                   v-model="weight"
                   :error-messages="weightErrors"
                   required
@@ -72,6 +109,7 @@
                   @input="$v.weight.$touch()"
                   @blur="$v.weight.$touch()"
                 />
+                <span v-else>1</span>
               </td>
             </tr>
             <tr/>
@@ -98,6 +136,11 @@
               </td>
             </tr>
           </table>
+          <v-checkbox
+            v-model="confirmRisks"
+            :error-messages="confirmRisksErrors"
+            label="I confirm that I wrote down the seed of the new signer and will keep it in a safe place"
+          />
         </v-card-text>
         <v-card-actions>
           <div v-if="errors.length > 0">
@@ -114,7 +157,8 @@
 
 <script>
 import { validationMixin } from 'vuelidate';
-import { required, integer, between } from 'vuelidate/lib/validators';
+import StellarSdk from 'stellar-sdk';
+import { required, integer, between, sameAs } from 'vuelidate/lib/validators';
 
 import { secretSeed as validSecretSeed, publicKey as validPublicKey } from '@/util/validators';
 
@@ -140,12 +184,29 @@ export default {
   },
   validations () {
     const base = {
-      weight: { required, integer, between: between(0, 255) },
       name: { required },
       signerPublicKey: { required, validPublicKey },
       secret: { required, validSecretSeed },
     };
-    return base;
+    let checkbox = {};
+    if (this.hasGenerated) {
+      checkbox = {
+        confirmRisks: { required, confirmed: sameAs(() => true) }
+      };
+    }
+    let signerSeed = {};
+    if (this.selectedType === 'allow_trust') {
+      signerSeed = {
+        signerSeed: { required, validSecretSeed },
+      };
+    }
+    let weight = {};
+    if (this.selectedType === 'other') {
+      weight = {
+        weight: { required, integer, between: between(0, 255) },
+      };
+    }
+    return {...base, ...checkbox, ...signerSeed, ...weight};
   },
   data () {
     return {
@@ -153,6 +214,7 @@ export default {
       description: '',
       selectedType: 'other',
       signerPublicKey: '',
+      signerSeed: '',
       weight: '',
 
       secret: '',
@@ -161,6 +223,12 @@ export default {
       showDialog: true,
 
       addSignerPending: false,
+
+      hasGenerated: false,
+
+      confirmRisks: false,
+
+      clipboard: null,
 
       typeItems: [
         {text: 'other', value: 'other'},
@@ -178,6 +246,14 @@ export default {
       return errors;
     },
 
+    confirmRisksErrors () {
+      const errors = [];
+      if (!this.$v.confirmRisks || !this.$v.confirmRisks.$dirty) return errors;
+      !this.$v.confirmRisks.required && errors.push('Confirmation is required.');
+      !this.$v.confirmRisks.confirmed && errors.push('Confirmation is required.');
+      return errors;
+    },
+
     nameErrors () {
       const errors = [];
       if (!this.$v.name.$dirty) return errors;
@@ -190,6 +266,14 @@ export default {
       if (!this.$v.signerPublicKey.$dirty) return errors;
       !this.$v.signerPublicKey.required && errors.push('Public key is required.');
       !this.$v.signerPublicKey.validPublicKey && errors.push('Public key should be valid.');
+      return errors;
+    },
+
+    signerSeedErrors () {
+      const errors = [];
+      if (!this.$v.signerSeed || !this.$v.signerSeed.$dirty) return errors;
+      !this.$v.signerSeed.required && errors.push('Secret seed is required.');
+      !this.$v.signerSeed.validSecretSeed && errors.push('Secret seed should be valid.');
       return errors;
     },
 
@@ -227,9 +311,15 @@ export default {
       this.description = '';
       this.selectedType = 'other';
       this.signerPublicKey = '';
+      this.signerSeed = '';
+      this.confirmRisks = false;
+
+      this.hasGenerated = false;
+
       this.secret = '';
-      this.showDialog = false;
+      this.showDialog = true;
       this.$v.$reset();
+      this.$emit('reset');
     },
 
     addSigner () {
@@ -241,11 +331,14 @@ export default {
         name: this.name,
         description: this.description,
         type: this.selectedType,
-        weight: this.weight,
+        weight: this.selectedType === 'allow_trust' ? 1 : this.weight,
         signerPublicKey: this.signerPublicKey,
+        signerSecret: this.signerSeed,
 
         secret: this.secret,
         publicKey: this.selectedSigner,
+
+        shouldCreateWallet: this.hasGenerated,
       });
       this.addSignerPending = true;
     },
@@ -260,6 +353,19 @@ export default {
       } else {
         this.showDialog = true;
       }
+    },
+
+    toggleNewPublicKey () {
+      if (this.hasGenerated) {
+        this.hasGenerated = false;
+        this.signerPublicKey = '';
+        this.signerSeed = '';
+        return;
+      }
+      this.hasGenerated = true;
+      const keyPair = StellarSdk.Keypair.random();
+      this.signerPublicKey = keyPair.publicKey();
+      this.signerSeed = keyPair.secret();
     }
   }
 };
@@ -268,5 +374,8 @@ export default {
 <style lang="scss" scoped>
 table {
   width: 100%;
+  td {
+    word-break: break-all;
+  }
 }
 </style>

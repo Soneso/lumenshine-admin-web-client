@@ -226,6 +226,7 @@ export default {
       this.secret = '';
       this.showSetDialog = false;
       this.$v.$reset();
+      this.$emit('reset');
     },
 
     setStellarData () {

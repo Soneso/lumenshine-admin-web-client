@@ -170,8 +170,9 @@ export default {
     reset () {
       this.weight = this.signer.weight;
       this.secret = '';
-      this.showDialog = false;
+      this.showDialog = true;
       this.$v.$reset();
+      this.$emit('reset');
     },
 
     updateSigner () {

@@ -8,7 +8,7 @@
         <tr v-for="asset_code in data.asset_codes" :key="asset_code">
           <td>{{ asset_code }}</td>
           <td>
-            <a href="#">Send</a>
+            <a href="#" @click.prevent="selectedAsset = asset_code">Send</a>
             <a href="#" class="warning-text" @click="onDelete(asset_code, data.public_key)">Remove</a>
           </td>
         </tr>
@@ -27,13 +27,21 @@
           <tr v-for="asset_code in data.asset_codes" :key="asset_code">
             <td>{{ asset_code }}</td>
             <td>
-              <a href="#">Send</a>
-              <a href="#" class="warning-text" @click="onDelete(asset_code, data.public_key)">Remove</a>
+              <a href="#" @click.prevent="selectedAsset = asset_code">Send</a>
+              <a href="#" class="warning-text" @click.prevent="onDelete(asset_code, data.public_key)">Remove</a>
             </td>
           </tr>
         </table>
       </template>
     </editor-widget>
+    <account-send-payment-form
+      v-if="selectedAsset"
+      :loading="loading"
+      :data="data"
+      :asset-code="selectedAsset"
+      @sendPayment="params => $emit('sendPayment', params)"
+      @reset="selectedAsset = null"
+    />
   </form>
 </template>
 
@@ -44,15 +52,20 @@ import { required } from 'vuelidate/lib/validators';
 import { assetCode as validAssetCode } from '@/util/validators';
 
 import EditorWidget from '@/components/EditorWidget';
+import AccountSendPaymentForm from '@/forms/AccountSendPaymentForm';
 
 export default {
   name: 'AccountAssetsForm',
-  components: { EditorWidget },
+  components: { EditorWidget, AccountSendPaymentForm },
   mixins: [validationMixin],
   props: {
     data: {
       type: Object,
       default: () => ({})
+    },
+    loading: {
+      type: Boolean,
+      required: true,
     },
     errors: {
       type: Array,
@@ -69,6 +82,7 @@ export default {
   data () {
     return {
       newAssetCode: '',
+      selectedAsset: null,
     };
   },
 
@@ -103,6 +117,7 @@ export default {
     onCancel () {
       this.newAssetCode = '';
       this.$v.$reset();
+      this.$emit('reset');
     }
   }
 };

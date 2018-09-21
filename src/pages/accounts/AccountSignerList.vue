@@ -3,7 +3,7 @@
     <strong>Signers:</strong> <a href="#" @click.prevent="onOpenForm('add')">add</a>
     <br>
     <v-layout row>
-      <v-flex xs9 sm9>
+      <v-flex xs6 sm6>
         <v-layout row>
           <v-text-field
             v-model="nameFilter"
@@ -22,13 +22,14 @@
             persistent-hint
           />
         </v-layout>
+        <br>Type
         <v-layout row>
-          Type<br>
           <v-checkbox
             v-model="searchMaster"
             label="master"
           />
           <v-checkbox
+            v-if="data.type === 'issuing'"
             v-model="searchAllowTrust"
             label="allow trust"
           />
@@ -42,10 +43,10 @@
     </v-layout>
     <table v-if="filteredSigners.length > 0" class="table">
       <thead>
-        <th>Name / Public key</th>
-        <th>Type</th>
-        <th>Weight</th>
-        <th/>
+        <th style="width: 25%;">Name / Public key</th>
+        <th style="width: 25%;">Type</th>
+        <th style="width: 25%;">Weight</th>
+        <th style="width: 25%;"/>
       </thead>
       <tr v-for="signer in filteredSigners" :key="signer.public_key">
         <td>
@@ -76,6 +77,7 @@
       :data="data"
       :errors="errors"
       @updateSigner="params => $emit('updateSigner', params)"
+      @reset="openedForm = null"
     />
     <account-add-signer-form
       v-if="openedForm === 'add'"
@@ -83,6 +85,7 @@
       :data="data"
       :errors="errors"
       @addSigner="params => $emit('addSigner', params)"
+      @reset="openedForm = null"
     />
     <account-signer-editor-form
       v-if="openedForm === 'edit'"
@@ -91,6 +94,7 @@
       :data="data"
       :errors="errors"
       @updateSigner="params => $emit('updateSigner', params)"
+      @reset="openedForm = null"
     />
     <account-signer-remove-form
       v-if="openedForm === 'remove'"
@@ -99,8 +103,9 @@
       :data="data"
       :errors="errors"
       @removeSigner="params => $emit('removeSigner', params)"
+      @reset="openedForm = null"
     />
-    <v-dialog :value="openedForm === 'description'" max-width="50%" @keydown.esc="openedForm = null">
+    <v-dialog :value="openedForm === 'description'" max-width="50%" @keydown.esc="openedForm = null" @input="openedForm = null" >
       <v-toolbar color="primary" dark dense>
         <v-toolbar-title class="white--text">Signer description</v-toolbar-title>
       </v-toolbar>
@@ -209,5 +214,16 @@ export default {
 <style lang="scss" scoped>
 table {
   width: 100%;
+  table-layout: fixed;
+  vertical-align: center;
+  thead th {
+    border-bottom: 1px solid #aaa;
+  }
+  td {
+    text-align: center;
+    word-break: break-all;
+    vertical-align: center;
+    border-bottom: 1px dotted #aaa;
+  }
 }
 </style>

@@ -59,16 +59,17 @@
         <strong>Balances:</strong>
         <table v-if="formattedBalances">
           <tr v-for="balance in formattedBalances" :key="balance.text">
-            <td>{{ balance.text }} &nbsp;&nbsp;&nbsp;&nbsp;<a href="#" @click.prevent="selectedBalance = balance">Send</a></td>
+            <td>{{ balance.text }} &nbsp;&nbsp;&nbsp;&nbsp;<a href="#" @click.prevent="sendBalance(balance)">Send</a></td>
           </tr>
         </table>
         <span v-else>Account not funded</span>
         <account-send-payment-form
-          v-if="selectedBalance"
+          v-if="selectedAsset"
           :loading="loading"
           :data="data"
-          :balance="selectedBalance"
+          :asset-code="selectedAsset"
           @sendPayment="params => $emit('sendPayment', params)"
+          @reset="selectedAsset = null"
         />
       </div>
 
@@ -117,7 +118,7 @@ export default {
       description: this.data.description || '',
 
       copiedAccount: null,
-      selectedBalance: null,
+      selectedAsset: null,
     };
   },
   computed: {
@@ -173,6 +174,14 @@ export default {
     onCopy (account) {
       this.copiedAccount = account;
     },
+
+    sendBalance (balance) {
+      if (balance.asset_type === 'native') {
+        this.selectedAsset = 'XLM';
+        return;
+      }
+      this.selectedAsset = balance.asset_code;
+    }
   }
 };
 </script>

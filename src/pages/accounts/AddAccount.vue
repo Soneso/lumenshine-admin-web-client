@@ -169,7 +169,6 @@ export default {
 
       return StellarAPI.loadAccount(fromAccount)
         .then(account => {
-          console.log('account', account);
           const transaction = new StellarSdk.TransactionBuilder(account)
             .addOperation(StellarSdk.Operation.createAccount({
               destination: toAccount,

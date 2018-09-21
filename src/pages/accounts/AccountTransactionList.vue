@@ -41,7 +41,7 @@
       </div>
       <v-dialog v-model="detailsModalShown" @keydown.esc="cancel()">
         <v-toolbar color="primary" dark dense>
-          <v-toolbar-title class="white--text">{{ title }}</v-toolbar-title>
+          <v-toolbar-title class="white--text">Operation details</v-toolbar-title>
         </v-toolbar>
         <v-card tile>
           <v-card-text><pre>{{ detailsModalData }}</pre></v-card-text>

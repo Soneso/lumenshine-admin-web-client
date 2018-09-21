@@ -46,14 +46,15 @@
             <tr>
               <td><strong>Amount to send</strong></td>
               <td>
-                <v-text-field
-                  v-model="amount"
-                  :error-messages="amountErrors"
-                  required
-                  single-line
-                  @input="$v.amount.$touch()"
-                  @blur="$v.amount.$touch()"
-                /> {{ assetCode }}
+                <v-layout row align-baseline>
+                  <v-text-field
+                    v-model="amount"
+                    :error-messages="amountErrors"
+                    required
+                    @input="$v.amount.$touch()"
+                    @blur="$v.amount.$touch()"
+                  /> {{ assetCode }}
+                </v-layout>
               </td>
             </tr>
             <tr>
@@ -114,7 +115,7 @@
 
 <script>
 import { validationMixin } from 'vuelidate';
-import { required, numeric, maxLength } from 'vuelidate/lib/validators';
+import { required, decimal, maxLength, minValue } from 'vuelidate/lib/validators';
 
 import { secretSeed as validSecretSeed, publicKey as validPublicKey } from '@/util/validators';
 
@@ -137,15 +138,15 @@ export default {
       type: Boolean,
       required: true,
     },
-    balance: {
-      type: Object,
-      default: () => ({})
-    }
+    assetCode: {
+      type: String,
+      default: 'XLM',
+    },
   },
   validations () {
     const base = {
       publicKey: { required, validPublicKey },
-      amount: { required, numeric },
+      amount: { required, decimal, positive: minValue(0) },
       secret: { required, validSecretSeed },
     };
 
@@ -183,11 +184,6 @@ export default {
     };
   },
   computed: {
-    assetCode () {
-      if (this.balance.asset_type === 'native') return 'XLM';
-      return this.balance.asset_code;
-    },
-
     memoPlaceholder () {
       switch (this.memoType) {
         case 'MEMO_TEXT':
@@ -209,7 +205,7 @@ export default {
       const errors = [];
       if (!this.$v.memoText.$dirty) return errors;
       !this.$v.memoText.maxLength && errors.push('Maximum length is 28 characters.');
-      !this.$v.memoText.validLength && errors.push('Length should be exactly 64 characters.');
+      this.$v.memoText.validLength === false && errors.push('Length should be exactly 64 characters.');
       return errors;
     },
 
@@ -217,7 +213,9 @@ export default {
       const errors = [];
       if (!this.$v.amount.$dirty) return errors;
       !this.$v.amount.required && errors.push('Amount is required.');
-      !this.$v.amount.numeric && errors.push('Amount should be numeric.');
+      !this.$v.amount.decimal && errors.push('Amount should be numeric.');
+      !this.$v.amount.positive && errors.push('Amount should be positive.');
+      return errors;
     },
 
     publicKeyErrors () {
@@ -257,10 +255,15 @@ export default {
   },
   methods: {
     reset () {
-      this.homeDomain = this.data.home_domain || '';
+      this.publicKey = '';
+      this.amount = '';
+      this.memoType = 'MEMO_TEXT';
+      this.memoText = '';
+
       this.secret = '';
       this.showDialog = false;
       this.$v.$reset();
+      this.$emit('reset');
     },
 
     sendPayment () {

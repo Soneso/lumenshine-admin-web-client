@@ -39,8 +39,10 @@
         <div v-if="accountData" row justify-space-between>
           <account-assets-form
             :data="accountData"
+            :loading="loadingAssets || loadingStellar"
             @addAssetCode="addAssetCode"
-            @deleteAssetCode="deleteAssetCode"/>
+            @deleteAssetCode="deleteAssetCode"
+            @sendPayment="sendPayment"/>
         </div>
       </div>
 
@@ -76,7 +78,7 @@
         <br>
         <account-signer-list
           :data="accountData"
-          :errors="stellarErrorMessages"
+          :errors="signersErrorMessages"
           :loading="loadingSigners"
           @addSigner="addSigner"
           @updateSigner="updateSigner"
@@ -94,12 +96,14 @@
         <v-subheader v-for="error in signersErrorMessages" :key="error.error_code" class="error">{{ error.error_message }}</v-subheader>
       </div>
       <div v-if="accountData && !loadingStellar" row justify-space-between>
-        <account-trust-form
+        <account-authorization-form
+          v-if="accountData.type === 'issuing'"
           :data="accountData"
           :loading="loadingStellar"
           @setStellarData="setStellarData"/>
         <account-trustline-list
-          :data="accountData"/>
+          :data="accountData"
+          @authorizeTrustline="authorizeTrustline"/>
       </div>
     </v-container>
 
@@ -133,7 +137,7 @@ import AccountAssetsForm from '@/forms/AccountAssetsForm';
 import AccountDetailsForm from '@/forms/AccountDetailsForm';
 import AccountStellarForm from '@/forms/AccountStellarForm';
 import AccountThresholdsForm from '@/forms/AccountThresholdsForm';
-import AccountTrustForm from '@/forms/AccountTrustForm';
+import AccountAuthorizationForm from '@/forms/AccountAuthorizationForm';
 import AccountHomeDomainForm from '@/forms/AccountHomeDomainForm';
 
 import AccountSignerList from '@/pages/accounts/AccountSignerList';
@@ -146,7 +150,7 @@ StellarSdk.Network.useTestNetwork();
 
 export default {
   name: 'EditAccount',
-  components: { AccountStellarForm, AccountAssetsForm, AccountDetailsForm, AccountThresholdsForm, AccountTrustForm, AccountHomeDomainForm, AccountTrustlineList, AccountSignerList },
+  components: { AccountStellarForm, AccountAssetsForm, AccountDetailsForm, AccountThresholdsForm, AccountAuthorizationForm, AccountHomeDomainForm, AccountTrustlineList, AccountSignerList },
   data () {
     return {
       loadingDetails: false,
@@ -160,6 +164,9 @@ export default {
 
       loadingStellar: false,
       stellarErrorMessages: [],
+
+      loadingTrustlines: false,
+      trustlineErrorMessages: [],
 
       loadingDelete: false,
       deleteErrorMessages: [],
@@ -292,7 +299,6 @@ export default {
         await this.getAccountDetails(this.accountData.public_key);
       } catch (err) {
         this.stellarErrorMessages = StellarErrorHandler(err);
-        console.error('stellar error', this.stellarErrorMessages);
       }
       this.loadingStellar = false;
     },
@@ -315,10 +321,10 @@ export default {
             return;
           }
 
-          const account = await StellarAPI.loadAccount(data.publicKey);
+          const account = await StellarAPI.loadAccount(this.accountData.public_key);
 
           const options = {
-            ...(data.signerPublicKey === data.publicKey ? {
+            ...(data.signerPublicKey === this.accountData.public_key ? {
               masterWeight: data.weight,
             } : {
               signer: {
@@ -396,7 +402,7 @@ export default {
       this.loadingAssets = false;
     },
 
-    async addSigner (data, type) {
+    async addSigner (data) {
       this.loadingSigners = true;
       this.signersErrorMessages = [];
 
@@ -406,15 +412,30 @@ export default {
 
         if (sourcePublicKey !== data.publicKey) {
           this.loadingStellar = false;
-          this.stellarErrorMessages = [{ error_code: 'NOT_MATCHING_SECRET', error_message: 'Secret seed not matching with public key.' }];
+          this.signersErrorMessages = [{ error_code: 'NOT_MATCHING_SECRET', error_message: 'Secret seed not matching with public key.' }];
           return;
         } else if (!this.accountData.signers.find(signer => signer.public_key === sourcePublicKey)) {
           this.loadingStellar = false;
-          this.stellarErrorMessages = [{ error_code: 'INVALID_SECRET', error_message: 'Invalid secret seed.' }];
+          this.signersErrorMessages = [{ error_code: 'INVALID_SECRET', error_message: 'Invalid secret seed.' }];
           return;
         }
 
-        const account = await StellarAPI.loadAccount(data.publicKey);
+        let account = await StellarAPI.loadAccount(data.publicKey);
+
+        if (data.shouldCreateWallet) {
+          const transaction = new StellarSdk.TransactionBuilder(account)
+            .addOperation(StellarSdk.Operation.createAccount({
+              destination: data.signerPublicKey,
+              startingBalance: '1.1',
+            }))
+            .build();
+
+          transaction.sign(sourceKeypair);
+
+          await StellarAPI.submitTransaction(transaction);
+        }
+
+        account = await StellarAPI.loadAccount(this.accountData.public_key);
 
         const transaction = new StellarSdk.TransactionBuilder(account)
           .addOperation(StellarSdk.Operation.setOptions({
@@ -428,15 +449,17 @@ export default {
         transaction.sign(sourceKeypair);
 
         await StellarAPI.submitTransaction(transaction);
+        console.log('data', data);
         await this.$http({
-          url: type === 'allow_trust' ? ApiUrls.Accounts.AddAllowTrustSigner : ApiUrls.Accounts.AddOtherSigner,
+          url: data.type === 'allow_trust' ? ApiUrls.Accounts.AddAllowTrustSigner : ApiUrls.Accounts.AddOtherSigner,
           method: 'POST',
           data: {
             account_public_key: this.accountData.public_key,
+            issuing_account_public_key: this.accountData.public_key,
             signer_name: data.name,
             signer_description: data.description,
             signer_public_key: data.signerPublicKey,
-            signer_secret_seed: data.secret,
+            signer_secret_seed: data.signerSecret,
           }
         });
         await this.getAccountDetails(this.accountData.public_key);
@@ -463,7 +486,7 @@ export default {
           return;
         }
 
-        const account = await StellarAPI.loadAccount(sourcePublicKey);
+        const account = await StellarAPI.loadAccount(this.accountData.public_key);
 
         const transaction = new StellarSdk.TransactionBuilder(account)
           .addOperation(StellarSdk.Operation.setOptions({
@@ -494,6 +517,46 @@ export default {
       this.loadingSigners = false;
     },
 
+    async authorizeTrustline (data) {
+      this.loadingTrustlines = true;
+      this.signersErrorMessages = [];
+      try {
+        const sourceKeypair = StellarSdk.Keypair.fromSecret(data.secret);
+        const sourcePublicKey = sourceKeypair.publicKey();
+
+        if (sourcePublicKey !== data.publicKey) {
+          this.loadingStellar = false;
+          this.stellarErrorMessages = [{ error_code: 'NOT_MATCHING_SECRET', error_message: 'Secret seed not matching with public key.' }];
+          return;
+        } else if (!this.accountData.signers.find(signer => signer.public_key === sourcePublicKey)) {
+          this.loadingStellar = false;
+          this.stellarErrorMessages = [{ error_code: 'INVALID_SECRET', error_message: 'Invalid secret seed.' }];
+          return;
+        }
+
+        const account = await StellarAPI.loadAccount(this.accountData.public_key);
+
+        const transaction = new StellarSdk.TransactionBuilder(account)
+          .addOperation(StellarSdk.Operation.allowTrust({
+            trustor: data.trustlinePublicKey,
+            assetCode: 'XLM',
+            authorize: data.type === 'authorize',
+            source: data.public_key,
+          }))
+          .build();
+
+        transaction.sign(sourceKeypair);
+
+        await StellarAPI.submitTransaction(transaction);
+        await this.getAccountDetails(this.accountData.public_key);
+      } catch (err) {
+        this.loadingTrustlines = false;
+        console.error(err);
+        this.trustlineErrorMessages = [{ error_message: 'Cannot authorize trustline, try again later.' }];
+      }
+      this.loadingTrustlines = false;
+    },
+
     onDelete () {
       this.$root.$confirm('Delete', 'Are you sure you want to delete the account?', { color: 'red', action: 'Delete' }).then(async confirm => {
         if (confirm) {
@@ -519,7 +582,7 @@ export default {
       });
     },
 
-    sendPayment (data) {
+    async sendPayment (data) {
       this.loadingStellar = true;
 
       const sourceKeypair = StellarSdk.Keypair.fromSecret(data.secret);
@@ -539,38 +602,37 @@ export default {
       if (data.memoText !== '') {
         switch (data.memoType) {
           case 'MEMO_TEXT':
-            memo = { memo: StellarSdk.Memo.text(data.memo) };
+            memo = { memo: StellarSdk.Memo.text(data.memoText) };
             break;
           case 'MEMO_ID':
-            memo = { memo: StellarSdk.Memo.id(data.memo) };
+            memo = { memo: StellarSdk.Memo.id(data.memoText) };
             break;
           case 'MEMO_HASH':
-            memo = { memo: StellarSdk.Memo.hash(data.memo) };
+            memo = { memo: StellarSdk.Memo.hash(data.memoText) };
             break;
           case 'MEMO_RETURN':
-            memo = { memo: StellarSdk.Memo.returnHash(data.memo) };
+            memo = { memo: StellarSdk.Memo.returnHash(data.memoText) };
             break;
         }
       }
 
-      return StellarAPI.loadAccount(data.publicKey)
-        .then(account => {
-          const asset = data.assetCode === 'XLM' ? StellarSdk.Asset.native() : new StellarSdk.Asset(data.assetCode, sourcePublicKey);
-          let transaction = new StellarSdk.TransactionBuilder(account, memo)
-            .addOperation(StellarSdk.Operation.payment({
-              destination: data.destPublicKey,
-              asset,
-              amount: data.amount
-            }));
+      const account = await StellarAPI.loadAccount(data.publicKey);
 
-          transaction = transaction.build();
+      const asset = data.assetCode === 'XLM' ? StellarSdk.Asset.native() : new StellarSdk.Asset(data.assetCode, sourcePublicKey);
+      let transaction = new StellarSdk.TransactionBuilder(account, memo)
+        .addOperation(StellarSdk.Operation.payment({
+          destination: data.destPublicKey,
+          asset,
+          amount: data.amount
+        }));
 
-          transaction.sign(sourceKeypair);
+      transaction = transaction.build();
 
-          return StellarAPI.submitTransaction(transaction);
-        }).then(() => {
-          this.loadingStellar = true;
-        });
+      transaction.sign(sourceKeypair);
+
+      await StellarAPI.submitTransaction(transaction);
+      await this.getAccountDetails(this.accountData.public_key);
+      this.loadingStellar = false;
     }
   }
 };
