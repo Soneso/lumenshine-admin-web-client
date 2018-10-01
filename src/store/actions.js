@@ -1,6 +1,7 @@
 import StellarSdk from 'stellar-sdk';
 
 import UserService from '@/services/user';
+import CustomerService from '@/services/customer';
 import AccountService from '@/services/account';
 import KnownCurrenciesService from '@/services/known_currencies';
 import KnownInflationDestinationsService from '@/services/known_inflation_destinations';
@@ -56,6 +57,32 @@ export default {
       commit('SET_ACCOUNT_LIST_ERROR', err.data);
     }
     commit('SET_ACCOUNT_LIST_LOADING', false);
+  },
+
+  // loads / updates each account (loads Stellar data too)
+  async getCustomerList ({ commit }) {
+    commit('SET_CUSTOMER_LIST_LOADING', true);
+    try {
+      const backendRes = await CustomerService.getCustomerList();
+      const items = backendRes.items;
+      // const stellarAccounts = await Promise.all(
+      //   backendRes.map(account =>
+      //     horizonServer.loadAccount(account.public_key).catch(err => err)
+      //   )
+      // );
+      const extended = items.map(account => {
+        // const stellarRes = stellarAccounts.find(acc => acc.id === account.public_key);
+        // if (stellarRes) {
+        //   return {...account, ...stellarRes};
+        // }
+        return account;
+      });
+
+      commit('SET_CUSTOMER_LIST', extended);
+    } catch (err) {
+      commit('SET_CUSTOMER_LIST_ERROR', err);
+    }
+    commit('SET_CUSTOMER_LIST_LOADING', false);
   },
 
   // loads / updates a single account (loads Stellar data too)

@@ -124,6 +124,7 @@
       :type="openedForm"
       :loading="loading"
       :requester="openedAccount"
+      :issuing-accounts="issuingAccounts"
       :data="data"
       :errors="errors"
       @addTrustline="params => $emit('addTrustline', params)"
@@ -149,6 +150,14 @@ export default {
       type: Object,
       default: () => ({})
     },
+    loading: {
+      type: Boolean,
+      required: true,
+    },
+    issuingAccounts: {
+      type: Array,
+      required: true,
+    }
   },
   data () {
     return {
@@ -203,24 +212,35 @@ export default {
     }
   },
   async created () {
-    await this.$http({
-      url: this.data.type === 'issuing' ? ApiUrls.Accounts.SearchTrustingAccounts : ApiUrls.Accounts.SearchWorkerAccountTrustlines,
-      method: 'GET',
-      params: {
-        issuing_account_public_key: this.data.public_key,
-        asset_code: 'XLM',
-        // filter_name: ''
-        // filter_public_key
-        filter_type: 'worker',
-        // filter_statuses
-        page_number: 0,
-        per_page_count: 20,
-      }
+    this.issuingAccounts.forEach(acc => {
+      this.getAccountDetails(acc.public_key);
     });
+    if (this.data.type === 'issuing') {
+      await this.$http({
+        url: ApiUrls.Accounts.SearchTrustingAccounts,
+        method: 'GET',
+        params: {
+          issuing_account_public_key: this.data.public_key,
+          asset_code: 'XLM',
+          // filter_name: ''
+          // filter_public_key
+          filter_type: 'worker',
+          // filter_statuses
+          page_number: 0,
+          per_page_count: 10,
+        }
+      });
+    } else { // worker account
+      await this.$http({
+        url: ApiUrls.Accounts.SearchWorkerAccountTrustlines + `/${this.data.public_key}`,
+        method: 'GET',
+      });
+    }
+
     this.getAccountList();
   },
   methods: {
-    ...mapActions(['getAccountList']),
+    ...mapActions(['getAccountList', 'getAccountDetails']),
     editAccount (pk) {
       this.$router.push({ path: `accounts/${pk}` });
     },

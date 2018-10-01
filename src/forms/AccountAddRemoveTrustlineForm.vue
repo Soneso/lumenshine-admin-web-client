@@ -10,15 +10,29 @@
           <table>
             <tr>
               <td><strong>Issuer account</strong></td>
-              <td>x</td>
+              <td v-if="trustlineToBeRemoved === null">
+                <v-select
+                  :items="issuerAccountItems"
+                  v-model="selectedIssuer"
+                />
+              </td>
+              <td v-else>
+                {{ trustlineToBeRemoved.name }}
+              </td>
             </tr>
             <tr>
               <td><strong>Issuer public key</strong></td>
-              <td>x</td>
+              <td v-if="trustlineToBeRemoved === null">{{ issuerPublicKey }}</td>
+              <td v-else>{{ trustlineToBeRemoved.public_key }}</td>
             </tr>
             <tr>
               <td><strong>Asset code</strong></td>
-              <td>x</td>
+              <td>
+                <v-select
+                  :items="assetCodeItems"
+                  v-model="selectedAssetCode"
+                />
+              </td>
             </tr>
             <tr/>
             <tr>
@@ -28,10 +42,6 @@
             <tr>
               <td><strong>Account thresholds</strong></td>
               <td>low threshold: {{ data.thresholds.low_threshold }}, medium threshold: {{ data.thresholds.med_threshold }}, high threshold: {{ data.thresholds.high_threshold }}</td>
-            </tr>
-            <tr>
-              <td><strong>Requesting account public key</strong></td>
-              <td>{{ requester.public_key }}</td>
             </tr>
             <tr/>
             <tr>
@@ -89,9 +99,9 @@ export default {
       type: Object,
       default: () => ({})
     },
-    requester: {
+    trustlineToBeRemoved: {
       type: Object,
-      default: () => ({})
+      default: () => null
     },
     errors: {
       type: Array,
@@ -104,21 +114,28 @@ export default {
     type: {
       type: String,
       required: true,
+    },
+    issuingAccounts: {
+      type: Array,
+      required: true,
     }
   },
   validations () {
     const base = {
-      reason: { required },
       secret: { required, validSecretSeed },
     };
     return base;
   },
   data () {
+    const firstIssuingAccount = this.issuingAccounts.filter(acc => acc.asset_codes && acc.asset_codes.length > 0);
     return {
       reason: '',
 
       secret: '',
       selectedSigner: this.data && this.data.signers ? this.data.signers[0].public_key : null,
+
+      selectedIssuer: firstIssuingAccount[0].public_key,
+      selectedAssetCode: firstIssuingAccount[0].asset_codes[0],
 
       showDialog: true,
 
@@ -126,13 +143,6 @@ export default {
     };
   },
   computed: {
-    reasonErrors () {
-      const errors = [];
-      if (!this.$v.reason.$dirty) return errors;
-      !this.$v.reason.required && errors.push('Reason is required.');
-      return errors;
-    },
-
     secretErrors () {
       const errors = [];
       if (!this.$v.secret.$dirty) return errors;
@@ -149,6 +159,31 @@ export default {
         value: signer.public_key,
       }));
     },
+
+    issuerAccountItems () {
+      if (!this.issuingAccounts) return [];
+      const acc = this.issuingAccounts;
+      return acc
+        .filter(acc => acc.asset_codes && acc.asset_codes.length > 0)
+        .map(acc => ({
+          text: `${acc.name} (${acc.public_key.slice(0, 16)}...)`,
+          value: acc.public_key,
+        }));
+    },
+
+    issuerPublicKey () {
+      if (!this.issuingAccounts) return [];
+      const acc = this.issuingAccounts.find(acc => acc.public_key === this.selectedIssuer);
+      return acc ? acc.public_key : '';
+    },
+
+    assetCodeItems () {
+      if (!this.issuingAccounts) return [];
+      const acc = this.issuingAccounts.find(acc => acc.public_key === this.selectedIssuer);
+      return acc
+        ? acc.asset_codes.map(code => ({text: code, value: code}))
+        : [];
+    }
   },
   watch: {
     loading (val) {
@@ -158,6 +193,11 @@ export default {
           this.reset();
         }
       }
+    },
+    selectedIssuer () {
+      if (!this.issuingAccounts) return [];
+      const acc = this.issuingAccounts.find(acc => acc.public_key === this.selectedIssuer);
+      this.selectedAssetCode = acc.asset_codes[0] ? acc.asset_codes[0] : null;
     }
   },
   methods: {
@@ -175,9 +215,8 @@ export default {
         return;
       }
       this.$emit('addTrustline', {
-        type: this.type,
-        reason: this.reason,
-        trustlinePublicKey: this.requester.public_key,
+        assetCode: this.selectedAssetCode,
+        issuerPublicKey: this.selectedIssuer,
         secret: this.secret,
         publicKey: this.selectedSigner,
       });
@@ -208,6 +247,8 @@ export default {
     onSetClick () {
       if (this.signerItems.length === 0) {
         this.$root.$info('Error', 'No signer is available for this operation.', { color: 'red' });
+      } else if (this.issuerAccountItems.length === 0) {
+        this.$root.$info('Error', 'No issuer account is available.', { color: 'red' });
       } else {
         this.showDialog = true;
       }

@@ -19,6 +19,10 @@ function initialState () {
     accountListError: null,
     accountList: [],
 
+    customerListLoading: false,
+    customerListError: null,
+    customerList: [],
+
     knownCurrenciesListLoading: false,
     knownCurrenciesListError: null,
     knownCurrenciesList: [],

@@ -28,10 +28,28 @@ export default {
   },
   SET_ACCOUNT_LIST_LOADING (state, msg) {
     state.accountListLoading = msg;
+    if (!msg) {
+      state.accountListError = null;
+    }
   },
   SET_ACCOUNT_LIST_ERROR (state, msg) {
     state.accountListError = msg;
     state.accountList = null;
+  },
+
+  SET_CUSTOMER_LIST (state, msg) {
+    state.customerList = msg;
+    state.customerListError = null;
+  },
+  SET_CUSTOMER_LIST_LOADING (state, msg) {
+    state.customerListLoading = msg;
+    if (!msg) {
+      state.customerListError = null;
+    }
+  },
+  SET_CUSTOMER_LIST_ERROR (state, msg) {
+    state.customerListError = msg;
+    state.customerList = null;
   },
 
   SET_KNOWN_CURRENCIES_LIST (state, msg) {

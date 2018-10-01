@@ -82,6 +82,11 @@ const Urls = {
     RemoveUnauthorizedTrustline: app('stellar_account/remove_unauthorized_trustline'),
   },
 
+  Customers: {
+    AllCustomers: app('customer/list'),
+    GetCustomer: app('customer/details'),
+  },
+
   KnownCurrencies: {
     AllCurrencies: app('known_currencies/all'),
     GetCurrency: app('known_currencies/get'),

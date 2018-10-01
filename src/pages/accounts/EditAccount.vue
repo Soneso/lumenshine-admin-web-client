@@ -103,7 +103,11 @@
           @setStellarData="setStellarData"/>
         <account-trustline-list
           :data="accountData"
-          @authorizeTrustline="authorizeTrustline"/>
+          :issuing-accounts="issuingAccounts"
+          :loading="loadingStellar"
+          :errors="stellarErrorMessages"
+          @authorizeTrustline="authorizeTrustline"
+          @addTrustline="addTrustline"/>
       </div>
     </v-container>
 
@@ -179,7 +183,11 @@ export default {
     },
     currentPage () {
       return this.$route.params.page || 'details';
-    }
+    },
+    issuingAccounts () {
+      if (!this.accountList) return [];
+      return this.accountList.filter(acc => acc.type === 'issuing');
+    },
   },
   watch: {
     accountData (val) {
@@ -580,6 +588,42 @@ export default {
           this.$router.push({ path: '/accounts' });
         }
       });
+    },
+
+    async addTrustline (data) {
+      this.loadingStellar = true;
+
+      const sourceKeypair = StellarSdk.Keypair.fromSecret(data.secret);
+      const sourcePublicKey = sourceKeypair.publicKey();
+
+      if (sourcePublicKey !== data.publicKey) {
+        this.loadingStellar = false;
+        this.stellarErrorMessages = [{ error_code: 'NOT_MATCHING_SECRET', error_message: 'Secret seed not matching with public key.' }];
+        return;
+      } else if (!this.accountData.signers.find(signer => signer.public_key === sourcePublicKey)) {
+        this.loadingStellar = false;
+        this.stellarErrorMessages = [{ error_code: 'INVALID_SECRET', error_message: 'Invalid secret seed.' }];
+        return;
+      }
+
+      const account = await StellarAPI.loadAccount(data.publicKey);
+
+      const asset = new StellarSdk.Asset(data.assetCode, data.issuerPublicKey);
+
+      let transaction = new StellarSdk.TransactionBuilder(account)
+        .addOperation(StellarSdk.Operation.changeTrust({
+          asset,
+          source: this.accountData.public_key
+        }));
+
+      transaction = transaction.build();
+
+      transaction.sign(sourceKeypair);
+
+      await StellarAPI.submitTransaction(transaction);
+      await this.getAccountDetails(this.accountData.public_key);
+
+      this.loadingStellar = false;
     },
 
     async sendPayment (data) {

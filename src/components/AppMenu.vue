@@ -135,6 +135,9 @@ export default {
           text: 'Customer Management',
           active: this.$route.path.startsWith('/customer'),
           roles: ['Administrators', 'Developers'],
+          children: [
+            { text: 'All customers', link: '/customers' },
+          ]
         },
         {
           icon: 'keyboard_arrow_up',
