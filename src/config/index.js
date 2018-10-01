@@ -1,6 +1,7 @@
-export default {
-  // API_BASE: 'http://192.168.2.112:8000'
-  API_BASE: '',
+/* global __BUILD_CONFIG__ */
 
-  APP_VERSION: '0.1.0'
+export default {
+  APP_VERSION: '0.1.0',
+
+  ...((__BUILD_CONFIG__ === 'demo') ? require('./demo').default : require('./alpha').default)
 };

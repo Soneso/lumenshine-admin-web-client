@@ -58,11 +58,16 @@
 <script>
 import StellarSdk from 'stellar-sdk';
 import dayjs from 'dayjs';
+import config from '@/config';
 
 import { mapActions, mapGetters } from 'vuex';
 
-const StellarAPI = new StellarSdk.Server(process.env.HORIZON_URL);
-StellarSdk.Network.useTestNetwork();
+const StellarAPI = new StellarSdk.Server(config.HORIZON_URL);
+if (config.IS_TEST_NETWORK) {
+  StellarSdk.Network.useTestNetwork();
+} else {
+  StellarSdk.Network.usePublicNetwork();
+}
 
 export default {
   name: 'AccountTransactionList',

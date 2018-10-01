@@ -119,6 +119,7 @@
 <script>
 import StellarSdk from 'stellar-sdk';
 import { Urls } from '@/router/urls';
+import config from '@/config';
 
 import { mapActions, mapGetters } from 'vuex';
 
@@ -130,8 +131,12 @@ import AccountThresholdsForm from '@/forms/AccountThresholdsForm';
 import AccountTrustForm from '@/forms/AccountTrustForm';
 import AccountHomeDomainForm from '@/forms/AccountHomeDomainForm';
 
-const StellarAPI = new StellarSdk.Server(process.env.HORIZON_URL);
-StellarSdk.Network.useTestNetwork();
+const StellarAPI = new StellarSdk.Server(config.HORIZON_URL);
+if (config.IS_TEST_NETWORK) {
+  StellarSdk.Network.useTestNetwork();
+} else {
+  StellarSdk.Network.usePublicNetwork();
+}
 
 export default {
   name: 'EditAccount',

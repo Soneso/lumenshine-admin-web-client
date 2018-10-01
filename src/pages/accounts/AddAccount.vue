@@ -40,9 +40,14 @@ import { mapActions, mapGetters } from 'vuex';
 import { Urls } from '@/router/urls';
 import AccountAddForm from '@/forms/AccountAddForm';
 import AccountConfirmForm from '@/forms/AccountConfirmForm';
+import config from '@/config';
 
-const StellarAPI = new StellarSdk.Server(process.env.HORIZON_URL);
-StellarSdk.Network.useTestNetwork();
+const StellarAPI = new StellarSdk.Server(config.HORIZON_URL);
+if (config.IS_TEST_NETWORK) {
+  StellarSdk.Network.useTestNetwork();
+} else {
+  StellarSdk.Network.usePublicNetwork();
+}
 
 export default {
   name: 'AddAccount',

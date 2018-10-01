@@ -1,11 +1,12 @@
 import StellarSdk from 'stellar-sdk';
+import config from '@/config';
 
 import UserService from '@/services/user';
 import AccountService from '@/services/account';
 import KnownCurrenciesService from '@/services/known_currencies';
 import KnownInflationDestinationsService from '@/services/known_inflation_destinations';
 
-const horizonServer = new StellarSdk.Server(process.env.HORIZON_URL);
+const horizonServer = new StellarSdk.Server(config.HORIZON_URL);
 
 export default {
   async resetState ({ commit }) {
