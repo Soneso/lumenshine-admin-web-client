@@ -3,10 +3,11 @@ import Vue from 'vue';
 import ApiUrls from '@/services/apiUrls';
 
 export default {
-  async getCustomerList () {
+  async getCustomerList (params) {
     const response = await Vue.http({
       url: ApiUrls.Customers.AllCustomers,
-      method: 'GET'
+      method: 'GET',
+      params,
     });
     return response.data;
   },

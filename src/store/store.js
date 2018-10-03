@@ -22,6 +22,7 @@ function initialState () {
     customerListLoading: false,
     customerListError: null,
     customerList: [],
+    customerTotalItems: 0,
 
     knownCurrenciesListLoading: false,
     knownCurrenciesListError: null,

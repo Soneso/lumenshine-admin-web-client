@@ -38,18 +38,33 @@ export default {
   },
 
   SET_CUSTOMER_LIST (state, msg) {
-    state.customerList = msg;
+    state.customerList = msg.items;
+    state.customerTotalItems = msg.total_count;
     state.customerListError = null;
   },
+
   SET_CUSTOMER_LIST_LOADING (state, msg) {
     state.customerListLoading = msg;
     if (!msg) {
       state.customerListError = null;
     }
   },
+
   SET_CUSTOMER_LIST_ERROR (state, msg) {
     state.customerListError = msg;
     state.customerList = null;
+  },
+
+  SET_CUSTOMER (state, msg) {
+    const accIndex = state.customerList.findIndex(customer => customer.id === msg.id);
+    if (accIndex !== -1) {
+      const cloned = [...state.customerList];
+      cloned[accIndex] = {...cloned[accIndex], ...msg};
+      state.customerList = cloned;
+    } else {
+      state.customerList = [...state.customerList, msg];
+    }
+    state.customerListError = null;
   },
 
   SET_KNOWN_CURRENCIES_LIST (state, msg) {

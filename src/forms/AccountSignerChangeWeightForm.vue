@@ -177,7 +177,6 @@ export default {
 
     updateSigner () {
       this.$v.$touch();
-      console.log('updating signer1');
       if (this.$v.$invalid) {
         return;
       }

@@ -95,10 +95,14 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['accountList']),
+    ...mapGetters(['accountList', 'customerList']),
     currentAccount () {
       if (!this.$route.params.pk || !this.accountList) return null;
       return this.accountList.find(acc => acc.public_key === this.$route.params.pk);
+    },
+    currentCustomer () {
+      if (!this.$route.params.id || !this.customerList) return null;
+      return this.customerList.find(acc => acc.id === this.$route.params.id);
     }
   },
   watch: {
@@ -120,6 +124,13 @@ export default {
         // ...(isAccountFunded && this.currentAccount.type !== 'funding' ? [{ text: 'Stellar form (old one)', link: `/accounts/${this.currentAccount.public_key}/stellar` }] : []), // temporary
       ];
 
+      const customerEditSubmenuItems = !this.currentCustomer ? [] : [
+        { text: 'Personal data', link: `/customers/${this.currentCustomer.id}/data` },
+        { text: 'ICO Orders', link: `/customers/${this.currentCustomer.id}/orders` },
+        { text: 'Wallets', link: `/customers/${this.currentCustomer.id}/wallets` },
+        { text: 'KYC', link: `/customers/${this.currentCustomer.id}/kyc` },
+      ];
+
       const menu = [
         { icon: 'contacts', text: 'Home', link: '/' },
         {
@@ -133,10 +144,15 @@ export default {
           icon: 'keyboard_arrow_up',
           'icon-alt': 'keyboard_arrow_down',
           text: 'Customer Management',
-          active: this.$route.path.startsWith('/customer'),
+          active: this.$route.path.startsWith('/customers'),
           roles: ['Administrators', 'Developers'],
           children: [
-            { text: 'All customers', link: '/customers' },
+            {
+              text: 'All customers',
+              link: '/customers',
+              children: customerEditSubmenuItems,
+              active: false
+            },
           ]
         },
         {

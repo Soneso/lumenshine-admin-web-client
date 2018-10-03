@@ -60,25 +60,11 @@ export default {
   },
 
   // loads / updates each account (loads Stellar data too)
-  async getCustomerList ({ commit }) {
+  async getCustomerList ({ commit }, params) {
     commit('SET_CUSTOMER_LIST_LOADING', true);
     try {
-      const backendRes = await CustomerService.getCustomerList();
-      const items = backendRes.items;
-      // const stellarAccounts = await Promise.all(
-      //   backendRes.map(account =>
-      //     horizonServer.loadAccount(account.public_key).catch(err => err)
-      //   )
-      // );
-      const extended = items.map(account => {
-        // const stellarRes = stellarAccounts.find(acc => acc.id === account.public_key);
-        // if (stellarRes) {
-        //   return {...account, ...stellarRes};
-        // }
-        return account;
-      });
-
-      commit('SET_CUSTOMER_LIST', extended);
+      const backendRes = await CustomerService.getCustomerList(params);
+      commit('SET_CUSTOMER_LIST', backendRes);
     } catch (err) {
       commit('SET_CUSTOMER_LIST_ERROR', err);
     }
@@ -104,6 +90,18 @@ export default {
     } catch (err) {
       commit('SET_ACCOUNT_LIST_ERROR', err.data);
     }
+  },
+
+  // loads / updates a single customer
+  async getCustomerDetails ({ getters, commit }, id) {
+    commit('SET_CUSTOMER_LIST_LOADING', true);
+    try {
+      const backendRes = await CustomerService.getCustomerDetails(id);
+      commit('SET_CUSTOMER', backendRes);
+    } catch (err) {
+      commit('SET_CUSTOMER_LIST_ERROR', err.data);
+    }
+    commit('SET_CUSTOMER_LIST_LOADING', false);
   },
 
   async getKnownCurrenciesList ({ commit }) {

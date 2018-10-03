@@ -85,6 +85,8 @@ const Urls = {
   Customers: {
     AllCustomers: app('customer/list'),
     GetCustomer: app('customer/details'),
+    EditCustomer: app('customer/update_personal_data'),
+    Reset2FA: app('customer/reset2fa'),
   },
 
   KnownCurrencies: {

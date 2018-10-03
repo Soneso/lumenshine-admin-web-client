@@ -189,11 +189,6 @@ export default {
       return this.accountList.filter(acc => acc.type === 'issuing');
     },
   },
-  watch: {
-    accountData (val) {
-      console.log('onchange', val);
-    }
-  },
   async created () {
     this.getAccountDetails(this.$route.params.pk);
   },
@@ -457,7 +452,7 @@ export default {
         transaction.sign(sourceKeypair);
 
         await StellarAPI.submitTransaction(transaction);
-        console.log('data', data);
+
         await this.$http({
           url: data.type === 'allow_trust' ? ApiUrls.Accounts.AddAllowTrustSigner : ApiUrls.Accounts.AddOtherSigner,
           method: 'POST',

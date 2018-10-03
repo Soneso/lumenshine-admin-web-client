@@ -6,8 +6,10 @@ export default {
   accountList: state => state.accountList,
   accountListStatus: state => ({ err: state.accountListError, res: state.accountList, loading: state.accountListLoading }),
 
+  customer: state => id => state.customerList.find(customer => customer.id === parseInt(id, 10)),
   customerList: state => state.customerList,
   customerListStatus: state => ({ err: state.customerListError, res: state.customerList, loading: state.customerListLoading }),
+  customerTotalItems: state => state.customerTotalItems,
 
   knownCurrenciesList: state => state.knownCurrenciesList,
   knownCurrenciesListStatus: state => ({ err: state.knownCurrenciesListError, res: state.knownCurrenciesList, loading: state.knownCurrenciesListLoading }),

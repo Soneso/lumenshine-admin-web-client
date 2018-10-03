@@ -6,7 +6,7 @@ export default {
   async getAccountList () {
     const response = await Vue.http({
       url: ApiUrls.Accounts.AllAccounts,
-      method: 'GET'
+      method: 'GET',
     });
     return response.data;
   },
