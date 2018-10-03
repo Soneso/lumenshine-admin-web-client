@@ -8,6 +8,7 @@ import ApiUrls from '@/services/apiUrls';
 import Vuelidate from 'vuelidate';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
+import config from '@/config';
 
 import VueClipboard from 'vue-clipboard2';
 import Vuetify from 'vuetify';
@@ -25,7 +26,7 @@ Vue.use(Vuetify);
 Vue.use(VueClipboard);
 
 // setup axios
-axios.defaults.baseURL = process.env.AXIOS_BASE_URL;
+axios.defaults.baseURL = config.API_BASE;
 Vue.use(VueAxios, axios);
 Vue.http = axios;
 

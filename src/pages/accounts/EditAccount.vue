@@ -134,6 +134,7 @@
 <script>
 import StellarSdk from 'stellar-sdk';
 import ApiUrls from '@/services/apiUrls';
+import config from '@/config';
 
 import { mapActions, mapGetters } from 'vuex';
 
@@ -149,8 +150,12 @@ import AccountTrustlineList from '@/pages/accounts/AccountTrustlineList';
 
 import StellarErrorHandler from '@/util/StellarErrorHelper';
 
-const StellarAPI = new StellarSdk.Server(process.env.HORIZON_URL);
-StellarSdk.Network.useTestNetwork();
+const StellarAPI = new StellarSdk.Server(config.HORIZON_URL);
+if (config.IS_TEST_NETWORK) {
+  StellarSdk.Network.useTestNetwork();
+} else {
+  StellarSdk.Network.usePublicNetwork();
+}
 
 export default {
   name: 'EditAccount',
