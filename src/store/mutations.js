@@ -43,9 +43,9 @@ export default {
     state.customerListError = null;
   },
 
-  SET_CUSTOMER_LIST_LOADING (state, msg) {
-    state.customerListLoading = msg;
-    if (!msg) {
+  SET_CUSTOMER_LIST_LOADING (state, loading) {
+    state.customerListLoading = loading;
+    if (!loading) {
       state.customerListError = null;
     }
   },

@@ -26,12 +26,11 @@
       <v-layout row justify-space-between>
         <v-flex xs6 sm6>
           <p>Nationality: {{ customerData.nationality }}</p>
-          <p>Birth date: {{ dayjs(customerData.birth_day).format('DD MMM YYYY') }}</p>
+          <p>Birth date: {{ customerData.birth_day && dayjs(customerData.birth_day).format('DD MMM YYYY') }}</p>
           <p>Birth place: {{ customerData.birth_place }}</p>
         </v-flex>
         <v-flex xs6 sm6>
-          <p>Registration date: {{ dayjs(customerData.registration_date).format('DD MMM YYYY') }}</p>
-          <p>Last login: {{ dayjs(customerData.last_login).format('DD MMM YYYY - HH:mm') }}</p>
+          <p>Registration date: {{ customerData.registration_date && dayjs(customerData.registration_date).format('DD MMM YYYY') }}</p>
         </v-flex>
       </v-layout>
       <customer-reset-tfa-form
@@ -63,9 +62,7 @@ export default {
     ...mapGetters(['customer', 'customerListStatus']),
     address () {
       const parts = [];
-      parts.push(this.customerData.street_address);
-      this.customerData.street_number && parts.push(' ');
-      this.customerData.street_number && parts.push(this.customerData.street_number);
+      parts.push(this.customerData.address);
       this.customerData.zip_code && parts.push(`, ${this.customerData.zip_code}`);
       this.customerData.city && parts.push('<br>');
       this.customerData.city && parts.push(this.customerData.city);

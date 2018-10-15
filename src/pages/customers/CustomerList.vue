@@ -135,7 +135,7 @@ export default {
       if (!this.customerList) return [];
       return this.customerList.map(customer => ({
         ...customer,
-        formatted_date: dayjs(customer.registration_date).format('DD MMM YYYY'),
+        formatted_date: customer.registration_date ? dayjs(customer.registration_date).format('DD MMM YYYY') : null,
       }));
     },
     kycStatus () {
