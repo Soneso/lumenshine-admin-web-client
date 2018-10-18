@@ -38,8 +38,8 @@ import StellarSdk from 'stellar-sdk';
 import { mapActions, mapGetters } from 'vuex';
 
 import ApiUrls from '@/services/apiUrls';
-import AccountAddForm from '@/forms/AccountAddForm';
-import AccountConfirmForm from '@/forms/AccountConfirmForm';
+import AccountAddForm from '@/forms/accounts/AccountAddForm';
+import AccountConfirmForm from '@/forms/accounts/AccountConfirmForm';
 import config from '@/config';
 
 const StellarAPI = new StellarSdk.Server(config.HORIZON_URL);

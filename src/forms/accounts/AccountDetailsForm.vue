@@ -82,7 +82,7 @@ import { validationMixin } from 'vuelidate';
 import { required, maxLength } from 'vuelidate/lib/validators';
 
 import EditorWidget from '@/components/EditorWidget';
-import AccountSendPaymentForm from '@/forms/AccountSendPaymentForm';
+import AccountSendPaymentForm from '@/forms/accounts/AccountSendPaymentForm';
 
 export default {
   name: 'AccountDetailsForm',

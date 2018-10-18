@@ -52,7 +52,7 @@ import { required } from 'vuelidate/lib/validators';
 import { assetCode as validAssetCode } from '@/util/validators';
 
 import EditorWidget from '@/components/EditorWidget';
-import AccountSendPaymentForm from '@/forms/AccountSendPaymentForm';
+import AccountSendPaymentForm from '@/forms/accounts/AccountSendPaymentForm';
 
 export default {
   name: 'AccountAssetsForm',

@@ -139,8 +139,8 @@ import { mapActions, mapGetters } from 'vuex';
 
 import ApiUrls from '@/services/apiUrls';
 
-import AccountAuthTrustlineForm from '@/forms/AccountAuthTrustlineForm';
-import AccountAddRemoveTrustlineForm from '@/forms/AccountAddRemoveTrustlineForm';
+import AccountAuthTrustlineForm from '@/forms/accounts/AccountAuthTrustlineForm';
+import AccountAddRemoveTrustlineForm from '@/forms/accounts/AccountAddRemoveTrustlineForm';
 
 export default {
   name: 'AccountTrustlineList',

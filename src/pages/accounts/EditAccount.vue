@@ -138,12 +138,12 @@ import config from '@/config';
 
 import { mapActions, mapGetters } from 'vuex';
 
-import AccountAssetsForm from '@/forms/AccountAssetsForm';
-import AccountDetailsForm from '@/forms/AccountDetailsForm';
-import AccountStellarForm from '@/forms/AccountStellarForm';
-import AccountThresholdsForm from '@/forms/AccountThresholdsForm';
-import AccountAuthorizationForm from '@/forms/AccountAuthorizationForm';
-import AccountHomeDomainForm from '@/forms/AccountHomeDomainForm';
+import AccountAssetsForm from '@/forms/accounts/AccountAssetsForm';
+import AccountDetailsForm from '@/forms/accounts/AccountDetailsForm';
+import AccountStellarForm from '@/forms/accounts/AccountStellarForm';
+import AccountThresholdsForm from '@/forms/accounts/AccountThresholdsForm';
+import AccountAuthorizationForm from '@/forms/accounts/AccountAuthorizationForm';
+import AccountHomeDomainForm from '@/forms/accounts/AccountHomeDomainForm';
 
 import AccountSignerList from '@/pages/accounts/AccountSignerList';
 import AccountTrustlineList from '@/pages/accounts/AccountTrustlineList';

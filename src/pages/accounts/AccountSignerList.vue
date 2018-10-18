@@ -119,10 +119,10 @@
 </template>
 
 <script>
-import AccountSignerChangeWeightForm from '@/forms/AccountSignerChangeWeightForm';
-import AccountAddSignerForm from '@/forms/AccountAddSignerForm';
-import AccountSignerEditorForm from '@/forms/AccountSignerEditorForm';
-import AccountSignerRemoveForm from '@/forms/AccountSignerRemoveForm';
+import AccountSignerChangeWeightForm from '@/forms/accounts/AccountSignerChangeWeightForm';
+import AccountAddSignerForm from '@/forms/accounts/AccountAddSignerForm';
+import AccountSignerEditorForm from '@/forms/accounts/AccountSignerEditorForm';
+import AccountSignerRemoveForm from '@/forms/accounts/AccountSignerRemoveForm';
 
 export default {
   components: { AccountSignerChangeWeightForm, AccountAddSignerForm, AccountSignerEditorForm, AccountSignerRemoveForm },

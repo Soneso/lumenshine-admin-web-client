@@ -46,7 +46,7 @@ import { mapActions, mapGetters } from 'vuex';
 import dayjs from 'dayjs';
 import ApiUrls from '@/services/apiUrls';
 
-import CustomerResetTfaForm from '@/forms/CustomerResetTfaForm';
+import CustomerResetTfaForm from '@/forms/customers/CustomerResetTfaForm';
 
 export default {
   name: 'EditCustomer',
