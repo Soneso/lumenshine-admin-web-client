@@ -103,7 +103,6 @@ export default {
     },
     currentCustomer () {
       if (!this.$route.params.id || !this.customerList) return null;
-      console.log('x', this.customerList);
       return this.customerList.find(acc => acc.id === parseInt(this.$route.params.id, 10));
     }
   },
@@ -132,8 +131,6 @@ export default {
         { text: 'Wallets', link: `/customers/${this.currentCustomer.id}/wallets` },
         { text: 'KYC', link: `/customers/${this.currentCustomer.id}/kyc` },
       ];
-
-      console.log('customerEditSubmenuItems', this.currentCustomer, customerEditSubmenuItems);
 
       const menu = [
         { icon: 'contacts', text: 'Home', link: '/' },
