@@ -97,8 +97,19 @@ export default {
   async getCustomerDetails ({ getters, commit }, id) {
     commit('SET_CUSTOMER_LIST_LOADING', true);
     try {
-      const backendRes = await CustomerService.getCustomerDetails(id);
-      commit('SET_CUSTOMER', backendRes);
+      const [ details, wallets, orders ] = await Promise.all([CustomerService.getCustomerDetails(id), CustomerService.getCustomerWallets(id), CustomerService.getCustomerOrders(id)]);
+      const data = { ...details, wallets: wallets.items, orders: orders.items };
+      const stellarData = await Promise.all(data.wallets.map(wallet => horizonServer.loadAccount(wallet.public_key).catch(err => err)));
+      // const stellarTransactionData = await Promise.all(stellarData.map(d => d.transactions ? d.transactions() : null));
+      data.wallets = data.wallets.map(wallet => {
+        const stellarRes = stellarData.find(acc => acc.id === wallet.public_key);
+        if (stellarRes) {
+          stellarRes.balances.sort(a => a.asset_type === 'native' ? -1 : 0); // XLM should be first
+          return {...wallet, ...stellarRes};
+        }
+        return wallet;
+      });
+      commit('SET_CUSTOMER', data);
     } catch (err) {
       commit('SET_CUSTOMER_LIST_ERROR', err.data);
     }

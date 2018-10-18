@@ -13,7 +13,21 @@ export default {
   },
   async getCustomerDetails (id) {
     const response = await Vue.http({
-      url: `${ApiUrls.Customers.GetCustomer}/${id}`,
+      url: `${ApiUrls.Customers.GetCustomerDetails}/${id}`,
+      method: 'GET'
+    });
+    return response.data;
+  },
+  async getCustomerOrders (id) {
+    const response = await Vue.http({
+      url: `${ApiUrls.Customers.GetCustomerOrders}/${id}`,
+      method: 'GET'
+    });
+    return response.data;
+  },
+  async getCustomerWallets (id) {
+    const response = await Vue.http({
+      url: `${ApiUrls.Customers.GetCustomerWallets}/${id}`,
       method: 'GET'
     });
     return response.data;

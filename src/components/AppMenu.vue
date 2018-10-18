@@ -42,7 +42,8 @@
                   <v-list-tile slot="activator" to="#">
                     <v-list-tile-content>
                       <v-list-tile-title>
-                        {{ currentAccount ? currentAccount.name : '' }}
+                        {{ currentAccount ? currentAccount.name : null }}
+                        {{ currentCustomer ? `${currentCustomer.forename} ${currentCustomer.last_name}`.trim() || currentCustomer.id : null }}
                       </v-list-tile-title>
                     </v-list-tile-content>
                   </v-list-tile>
@@ -102,7 +103,8 @@ export default {
     },
     currentCustomer () {
       if (!this.$route.params.id || !this.customerList) return null;
-      return this.customerList.find(acc => acc.id === this.$route.params.id);
+      console.log('x', this.customerList);
+      return this.customerList.find(acc => acc.id === parseInt(this.$route.params.id, 10));
     }
   },
   watch: {
@@ -130,6 +132,8 @@ export default {
         { text: 'Wallets', link: `/customers/${this.currentCustomer.id}/wallets` },
         { text: 'KYC', link: `/customers/${this.currentCustomer.id}/kyc` },
       ];
+
+      console.log('customerEditSubmenuItems', this.currentCustomer, customerEditSubmenuItems);
 
       const menu = [
         { icon: 'contacts', text: 'Home', link: '/' },

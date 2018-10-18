@@ -60,7 +60,7 @@ import StellarSdk from 'stellar-sdk';
 import dayjs from 'dayjs';
 import config from '@/config';
 
-import { mapActions, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 
 const StellarAPI = new StellarSdk.Server(config.HORIZON_URL);
 if (config.IS_TEST_NETWORK) {
@@ -95,7 +95,6 @@ export default {
     this.loading = false;
   },
   methods: {
-    ...mapActions([]),
     async processOperationQuery () {
       const operations = this.operationQuery.records;
       const transactionQueries = await Promise.all(operations.map(t => t.transaction()));

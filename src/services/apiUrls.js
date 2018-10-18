@@ -84,8 +84,11 @@ const Urls = {
 
   Customers: {
     AllCustomers: app('customer/list'),
-    GetCustomer: app('customer/details'),
+    GetCustomerDetails: app('customer/details'),
+    GetCustomerOrders: app('customer/orders'),
+    GetCustomerWallets: app('customer/wallets'),
     EditCustomer: app('customer/update_personal_data'),
+    UpdateKYCStatus: app('customer/update_kyc_status'),
     Reset2FA: app('customer/reset2fa'),
   },
 
