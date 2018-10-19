@@ -91,4 +91,15 @@ export default {
     state.knownInflationDestinationsList = null;
   },
 
+  SET_STATIC_DATA (state, data) {
+    if (!data) {
+      state.staticDataLoaded = false;
+      return;
+    }
+    state.languageList = data.languages;
+    state.occupationList = data.occupations;
+    state.countryList = data.countries;
+    state.salutationList = data.salutations;
+    state.staticDataLoaded = true;
+  },
 };

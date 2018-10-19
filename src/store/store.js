@@ -31,6 +31,12 @@ function initialState () {
     knownInflationDestinationsListLoading: false,
     knownInflationDestinationsListError: null,
     knownInflationDestinationsList: [],
+
+    staticDataLoaded: false,
+    occupationList: [],
+    countryList: [],
+    salutationList: [],
+    languageList: [],
   };
 }
 

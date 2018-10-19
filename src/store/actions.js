@@ -4,6 +4,7 @@ import config from '@/config';
 import UserService from '@/services/user';
 import CustomerService from '@/services/customer';
 import AccountService from '@/services/account';
+import DataService from '@/services/data';
 import KnownCurrenciesService from '@/services/known_currencies';
 import KnownInflationDestinationsService from '@/services/known_inflation_destinations';
 
@@ -12,6 +13,19 @@ const horizonServer = new StellarSdk.Server(config.HORIZON_URL);
 export default {
   async resetState ({ commit }) {
     commit('RESET');
+  },
+
+  async loadStaticData ({ commit, state }) {
+    if (state.staticDataLoaded) {
+      return;
+    }
+    try {
+      const [ salutations, countries, occupations, languages ] = await Promise.all([DataService.getSalutations(), DataService.getCountries(), DataService.getOccupations(), DataService.getLanguages()]);
+      const data = { salutations, countries, occupations, languages };
+      commit('SET_STATIC_DATA', data);
+    } catch (err) {
+      commit('SET_STATIC_DATA', null);
+    }
   },
 
   async getUserInfo ({ commit }) {
@@ -24,6 +38,7 @@ export default {
     }
     commit('SET_USER_INFO_LOADING', false);
   },
+
   async getUserList ({ commit }) {
     commit('SET_USER_LIST_LOADING', true);
     try {

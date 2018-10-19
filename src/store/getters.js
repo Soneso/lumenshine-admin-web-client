@@ -16,4 +16,9 @@ export default {
 
   knownInflationDestinationsList: state => state.knownInflationDestinationsList,
   knownInflationDestinationsListStatus: state => ({ err: state.knownInflationDestinationsListError, res: state.knownInflationDestinationsList, loading: state.knownInflationDestinationsListLoading }),
+
+  languages: state => state.languageList,
+  occupations: state => state.occupationList,
+  countries: state => state.countryList,
+  salutations: state => state.salutationList,
 };

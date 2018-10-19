@@ -29,6 +29,7 @@ export default new Router({
 
         { path: '/customers', component: require('@/pages/customers/CustomerList').default, name: 'CustomerList' },
         { path: '/customers/:id/wallets', component: require('@/pages/customers/CustomerWalletList').default, name: 'CustomerWalletList' },
+        { path: '/customers/:id/orders', component: require('@/pages/customers/CustomerOrderList').default, name: 'CustomerOrderList' },
         { path: '/customers/:id/:page?', component: require('@/pages/customers/EditCustomer').default, name: 'EditCustomer' },
 
         { path: '/known_currencies', component: require('@/pages/known_currencies/KnownCurrenciesList').default, name: 'KnownCurrenciesList' },
