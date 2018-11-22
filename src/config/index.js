@@ -5,5 +5,8 @@ export default {
 
   IS_DEV: process.env.NODE_ENV === 'development',
 
-  ...((__BUILD_CONFIG__ === 'demo') ? require('./demo').default : require('./alpha').default),
+  ...((__BUILD_CONFIG__ === 'demo') ? require('./demo').default : {}),
+  ...((__BUILD_CONFIG__ === 'alpha') ? require('./alpha').default : {}),
+  ...((__BUILD_CONFIG__ === 'lsdev') ? require('./lsdev').default : {}),
+  ...((__BUILD_CONFIG__ === 'lsstage') ? require('./lsstage').default : {}),
 };
